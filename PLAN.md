@@ -50,13 +50,18 @@
 
 ## 当前进度（前端）
 - Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
-- 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换。
-- 基本资源与字符串已填充（Tab 标题与临时图标），尚未接入实际数据或 ViewModel。
+- 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换，底栏采用自定义图标与主题色。
+- ViewModel + 仓库占位完成，Fragment 通过 LiveData 订阅占位 UI 状态；导航切换附加动画与状态恢复配置。
+- 基本资源与字符串已填充（Tab 标题、动画、配色），尚未接入实际数据。
 - 尚未运行构建/测试，可能需联网下载依赖。
 
 ## 下一步 TODO（前端优先）
-- 替换 BottomNav 图标与主题配色，确定视觉基调。
-- 为各 Fragment 增加 ViewModel/Repository 框架与导航动画占位，建立基础数据模型。
+- 细化主题/图标（如需设计稿适配），完善状态栏/导航栏沉浸与动画细节。
+- 将仓库接入真实数据层（Retrofit/Room）并抽象接口；引入 DI（Hilt/Koin）管理依赖。
+- 接入登录/注册入口与路由（决定是启动页或我的页内触发）。
+- 天气模块：权限请求流程草稿 + 城市选择页框架。
+- 穿搭模块：RecyclerView 瀑布流骨架 + 筛选条/搜索入口占位。
+- 智能换装：上传/拍照流程设计稿及权限处理方案草稿。
 - 接入登录/注册入口与路由（决定是启动页或我的页内触发）。
 - 天气模块：权限请求流程草稿 + 城市选择页框架。
 - 穿搭模块：RecyclerView 瀑布流骨架 + 筛选条/搜索入口占位。

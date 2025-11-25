@@ -2,4 +2,23 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Light palette -->
+    <color name="md_theme_light_primary">#0F766E</color>
+    <color name="md_theme_light_onPrimary">#FFFFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#A8E3DA</color>
+    <color name="md_theme_light_onPrimaryContainer">#00201C</color>
+    <color name="md_theme_light_secondary">#E36414</color>
+    <color name="md_theme_light_onSecondary">#FFFFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#FFE1C4</color>
+    <color name="md_theme_light_onSecondaryContainer">#2A0B00</color>
+    <color name="md_theme_light_surface">#F7F5F2</color>
+    <color name="md_theme_light_onSurface">#111827</color>
+    <color name="md_theme_light_surfaceVariant">#DDE3E0</color>
+    <color name="md_theme_light_onSurfaceVariant">#425158</color>
+    <color name="md_theme_light_outline">#7A8A91</color>
+
+    <!-- Bottom navigation -->
+    <color name="nav_icon_active">@color/md_theme_light_primary</color>
+    <color name="nav_icon_inactive">@color/md_theme_light_onSurfaceVariant</color>
 </resources>

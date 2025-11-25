@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
 import com.example.dresscode.databinding.ActivityMainBinding
 
@@ -23,6 +25,25 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
         binding.bottomNav.setupWithNavController(navController)
+
+        val navOptions = NavOptions.Builder()
+            .setLaunchSingleTop(true)
+            .setRestoreState(true)
+            .setEnterAnim(R.anim.nav_enter)
+            .setExitAnim(R.anim.nav_exit)
+            .setPopEnterAnim(R.anim.nav_pop_enter)
+            .setPopExitAnim(R.anim.nav_pop_exit)
+            .setPopUpTo(navController.graph.startDestinationId, false, true)
+            .build()
+
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            item.onNavDestinationSelected(navController, navOptions)
+            true
+        }
+
+        binding.bottomNav.setOnItemReselectedListener { item ->
+            navController.popBackStack(item.itemId, inclusive = false)
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

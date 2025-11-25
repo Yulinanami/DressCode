@@ -4,4 +4,8 @@
     <string name="tab_outfits">穿搭</string>
     <string name="tab_try_on">智能换装</string>
     <string name="tab_profile">我的</string>
+    <string name="weather_placeholder">%1$s · %2$s · %3$s</string>
+    <string name="outfit_placeholder">%1$s / %2$s</string>
+    <string name="try_on_placeholder">%1$s / %2$s</string>
+    <string name="profile_placeholder">%1$s · %2$s</string>
 </resources>

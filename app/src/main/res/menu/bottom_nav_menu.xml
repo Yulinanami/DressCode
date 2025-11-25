@@ -3,22 +3,22 @@
 
     <item
         android:id="@+id/weatherFragment"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@drawable/ic_tab_weather"
         android:title="@string/tab_weather" />
 
     <item
         android:id="@+id/outfitFeedFragment"
-        android:icon="@android:drawable/ic_menu_gallery"
+        android:icon="@drawable/ic_tab_outfits"
         android:title="@string/tab_outfits" />
 
     <item
         android:id="@+id/tryOnFragment"
-        android:icon="@android:drawable/ic_menu_camera"
+        android:icon="@drawable/ic_tab_try_on"
         android:title="@string/tab_try_on" />
 
     <item
         android:id="@+id/profileFragment"
-        android:icon="@android:drawable/ic_menu_preferences"
+        android:icon="@drawable/ic_tab_profile"
         android:title="@string/tab_profile" />
 
 </menu>
