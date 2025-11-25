@@ -7,6 +7,13 @@ data class WeatherUiState(
     val temperature: String = "--°"
 )
 
+data class AuthState(
+    val isLoggedIn: Boolean = false,
+    val email: String? = null,
+    val displayName: String? = null,
+    val token: String? = null
+)
+
 data class OutfitUiState(
     val title: String = "穿搭",
     val highlight: String = "探索穿搭灵感",

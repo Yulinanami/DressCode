@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation)
     kapt(libs.hilt.compiler)
+    implementation(libs.datastore.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -25,11 +25,24 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 getString(R.string.profile_placeholder, state.subtitle, state.notes)
         }
 
-        binding.sectionTitle.setOnClickListener {
-            navigateToLogin()
-        }
-        binding.sectionSubtitle.setOnClickListener {
-            navigateToLogin()
+        viewModel.authState.observe(viewLifecycleOwner) { auth ->
+            binding.btnAuthAction.text =
+                if (auth.isLoggedIn) getString(R.string.btn_logout) else getString(R.string.btn_go_login)
+            binding.btnAuthAction.setOnClickListener {
+                if (auth.isLoggedIn) {
+                    viewModel.logout()
+                } else {
+                    navigateToLogin()
+                }
+            }
+
+            val navigateIfGuest: () -> Unit = {
+                if (!auth.isLoggedIn) {
+                    navigateToLogin()
+                }
+            }
+            binding.sectionTitle.setOnClickListener { navigateIfGuest() }
+            binding.sectionSubtitle.setOnClickListener { navigateIfGuest() }
         }
     }
 
