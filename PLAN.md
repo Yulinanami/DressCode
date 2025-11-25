@@ -48,6 +48,20 @@
 6) 后端完善：穿搭/收藏/搜索/天气缓存接口，换装任务队列，静态资源服务。
 7) 测试与发布：多版本设备测试、权限/存储回归、性能与网络降级；准备发布构建与演示数据。
 
+## 当前进度（前端）
+- Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
+- 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换。
+- 基本资源与字符串已填充（Tab 标题与临时图标），尚未接入实际数据或 ViewModel。
+- 尚未运行构建/测试，可能需联网下载依赖。
+
+## 下一步 TODO（前端优先）
+- 替换 BottomNav 图标与主题配色，确定视觉基调。
+- 为各 Fragment 增加 ViewModel/Repository 框架与导航动画占位，建立基础数据模型。
+- 接入登录/注册入口与路由（决定是启动页或我的页内触发）。
+- 天气模块：权限请求流程草稿 + 城市选择页框架。
+- 穿搭模块：RecyclerView 瀑布流骨架 + 筛选条/搜索入口占位。
+- 智能换装：上传/拍照流程设计稿及权限处理方案草稿。
+
 ## 目录结构建议
 - Android：`app/src/main/java/.../ui/{home,weather,feed,tryon,profile}`，`data/{remote,local,repo}`，`domain/models`，`common`。
 - Backend：`backend/main.py`，`backend/app/routers/{auth,outfits,favorites,weather,tryon,settings}`，`backend/app/{models,schemas,services}`，`alembic/`。
