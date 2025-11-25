@@ -37,8 +37,12 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         binding.bottomNav.setOnItemSelectedListener { item ->
-            item.onNavDestinationSelected(navController, navOptions)
-            true
+            return@setOnItemSelectedListener try {
+                navController.navigate(item.itemId, null, navOptions)
+                true
+            } catch (e: IllegalArgumentException) {
+                false
+            }
         }
 
         binding.bottomNav.setOnItemReselectedListener { item ->
