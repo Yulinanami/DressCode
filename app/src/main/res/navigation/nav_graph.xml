@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/weatherFragment">
+
+    <fragment
+        android:id="@+id/weatherFragment"
+        android:name="com.example.dresscode.ui.weather.WeatherFragment"
+        android:label="@string/tab_weather"
+        tools:layout="@layout/fragment_weather" />
+
+    <fragment
+        android:id="@+id/outfitFeedFragment"
+        android:name="com.example.dresscode.ui.feed.OutfitFeedFragment"
+        android:label="@string/tab_outfits"
+        tools:layout="@layout/fragment_outfit_feed" />
+
+    <fragment
+        android:id="@+id/tryOnFragment"
+        android:name="com.example.dresscode.ui.tryon.TryOnFragment"
+        android:label="@string/tab_try_on"
+        tools:layout="@layout/fragment_try_on" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.dresscode.ui.profile.ProfileFragment"
+        android:label="@string/tab_profile"
+        tools:layout="@layout/fragment_profile" />
+
+</navigation>
