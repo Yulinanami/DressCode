@@ -9,7 +9,11 @@
         android:id="@+id/weatherFragment"
         android:name="com.example.dresscode.ui.weather.WeatherFragment"
         android:label="@string/tab_weather"
-        tools:layout="@layout/fragment_weather" />
+        tools:layout="@layout/fragment_weather">
+        <action
+            android:id="@+id/action_weather_to_city_select"
+            app:destination="@id/citySelectFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/outfitFeedFragment"
@@ -27,6 +31,22 @@
         android:id="@+id/profileFragment"
         android:name="com.example.dresscode.ui.profile.ProfileFragment"
         android:label="@string/tab_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.dresscode.ui.auth.LoginFragment"
+        android:label="@string/btn_login"
+        tools:layout="@layout/fragment_login" />
+
+    <fragment
+        android:id="@+id/citySelectFragment"
+        android:name="com.example.dresscode.ui.weather.CitySelectFragment"
+        android:label="@string/city_select_title"
+        tools:layout="@layout/fragment_city_select" />
 
 </navigation>

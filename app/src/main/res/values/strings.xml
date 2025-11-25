@@ -8,4 +8,20 @@
     <string name="outfit_placeholder">%1$s / %2$s</string>
     <string name="try_on_placeholder">%1$s / %2$s</string>
     <string name="profile_placeholder">%1$s · %2$s</string>
+    <string name="tab_feed_title">穿搭灵感</string>
+    <string name="tab_feed_subtitle">为你推荐</string>
+    <string name="search_hint">搜索风格 / 单品 / 场景</string>
+    <string name="filter_default">全部</string>
+    <string name="filter_gender">性别</string>
+    <string name="filter_style">风格</string>
+    <string name="filter_scene">场景</string>
+    <string name="filter_weather">天气</string>
+    <string name="filter_season">季节</string>
+    <string name="btn_login">登录 / 注册</string>
+    <string name="welcome_title">欢迎来到 DressCode</string>
+    <string name="welcome_subtitle">登录后同步收藏、设置和换装历史</string>
+    <string name="city_select_title">选择城市</string>
+    <string name="permission_location_rationale">需要定位以展示当前天气和推荐</string>
+    <string name="btn_request_permission">允许定位</string>
+    <string name="btn_select_city">选择城市</string>
 </resources>

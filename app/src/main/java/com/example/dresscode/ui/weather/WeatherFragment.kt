@@ -4,9 +4,13 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentWeatherBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
     private var _binding: FragmentWeatherBinding? = null
@@ -20,6 +24,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             binding.sectionTitle.text = state.title
             binding.sectionSubtitle.text =
                 getString(R.string.weather_placeholder, state.city, state.summary, state.temperature)
+        }
+
+        binding.btnRequestLocation.setOnClickListener {
+            Snackbar.make(binding.root, R.string.permission_location_rationale, Snackbar.LENGTH_SHORT).show()
+        }
+
+        binding.btnSelectCity.setOnClickListener {
+            findNavController().navigate(R.id.action_weather_to_city_select)
         }
     }
 

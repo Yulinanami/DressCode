@@ -6,9 +6,12 @@ import androidx.lifecycle.ViewModel
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.model.OutfitUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class OutfitFeedViewModel(
-    private val repository: OutfitRepository = OutfitRepository()
+@HiltViewModel
+class OutfitFeedViewModel @Inject constructor(
+    private val repository: OutfitRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())

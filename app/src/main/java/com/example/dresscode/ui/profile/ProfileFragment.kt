@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentProfileBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private var _binding: FragmentProfileBinding? = null
@@ -21,6 +24,17 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             binding.sectionSubtitle.text =
                 getString(R.string.profile_placeholder, state.subtitle, state.notes)
         }
+
+        binding.sectionTitle.setOnClickListener {
+            navigateToLogin()
+        }
+        binding.sectionSubtitle.setOnClickListener {
+            navigateToLogin()
+        }
+    }
+
+    private fun navigateToLogin() {
+        findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
     }
 
     override fun onDestroyView() {

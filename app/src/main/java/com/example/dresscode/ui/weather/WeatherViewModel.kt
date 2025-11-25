@@ -5,9 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.dresscode.data.repository.WeatherRepository
 import com.example.dresscode.model.WeatherUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class WeatherViewModel(
-    private val repository: WeatherRepository = WeatherRepository()
+@HiltViewModel
+class WeatherViewModel @Inject constructor(
+    private val repository: WeatherRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())

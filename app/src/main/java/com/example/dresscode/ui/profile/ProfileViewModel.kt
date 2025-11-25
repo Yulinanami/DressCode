@@ -5,9 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.ProfileUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ProfileViewModel(
-    private val repository: UserRepository = UserRepository()
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val repository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.profile())

@@ -5,9 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.model.TryOnUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class TryOnViewModel(
-    private val repository: TryOnRepository = TryOnRepository()
+@HiltViewModel
+class TryOnViewModel @Inject constructor(
+    private val repository: TryOnRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())

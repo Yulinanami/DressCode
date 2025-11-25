@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentTryOnBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TryOnFragment : Fragment(R.layout.fragment_try_on) {
 
     private var _binding: FragmentTryOnBinding? = null

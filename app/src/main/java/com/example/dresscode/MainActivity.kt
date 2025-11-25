@@ -7,10 +7,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.onNavDestinationSelected
-import androidx.navigation.ui.setupWithNavController
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.dresscode.databinding.ActivityMainBinding
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
-        binding.bottomNav.setupWithNavController(navController)
 
         val navOptions = NavOptions.Builder()
             .setLaunchSingleTop(true)
@@ -33,14 +32,18 @@ class MainActivity : AppCompatActivity() {
             .setExitAnim(R.anim.nav_exit)
             .setPopEnterAnim(R.anim.nav_pop_enter)
             .setPopExitAnim(R.anim.nav_pop_exit)
-            .setPopUpTo(navController.graph.startDestinationId, false, true)
+            .setPopUpTo(
+                navController.graph.startDestinationId,
+                inclusive = false,
+                saveState = true
+            )
             .build()
 
         binding.bottomNav.setOnItemSelectedListener { item ->
             return@setOnItemSelectedListener try {
                 navController.navigate(item.itemId, null, navOptions)
                 true
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 false
             }
         }
