@@ -51,7 +51,7 @@
 ## 当前进度（前端）
 - Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
 - 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换，底栏采用自定义图标与主题色。
-- ViewModel + 仓库占位完成，Fragment 通过 LiveData 订阅占位 UI 状态；导航切换附加动画与状态恢复配置。
+- ViewModel + 仓库占位完成，Fragment 通过 LiveData 订阅占位 UI 状态；导航切换附加动画与状态恢复配置；Profile/Login 已有本地 DataStore 模拟登录/注册/退出流程与 UI 切换。
 - 基本资源与字符串已填充（Tab 标题、动画、配色），尚未接入实际数据。
 - 尚未运行构建/测试，可能需联网下载依赖。
 - 引入 Hilt 并注入仓库，Activity/Fragment/ViewModel 均已标注；底栏导航动画与状态保存生效。
@@ -61,19 +61,12 @@
 
 ## 下一步 TODO（前端优先）
 - 细化主题/图标（如需设计稿适配），完善状态栏/导航栏沉浸与动画细节。
-- 将仓库接入真实数据层（Retrofit/Room）并抽象接口；引入 DI（Hilt/Koin）管理依赖。
-- 接入登录/注册入口与路由（决定是启动页或我的页内触发）。
-- 数据层落地：接入 Retrofit + mock 服务，Room 缓存；穿搭列表/天气请求与加载-空-错误态。
-- 权限与结果流：封装定位权限，城市选择结果回传；设计智能换装上传/拍照权限链路（占位 UI 可先弹 Snackbar）。
-- 登录流：表单校验、鉴权 API、Token 持久化；Profile 展示用户信息/收藏入口。
-- 导航与 UX：如需多 back stack，优化 Tab 返回行为；完善空态/错误态/刷新；暗色模式与图标/间距细化。
-- 天气模块：权限请求流程草稿 + 城市选择页框架。
-- 穿搭模块：RecyclerView 瀑布流骨架 + 筛选条/搜索入口占位。
-- 智能换装：上传/拍照流程设计稿及权限处理方案草稿。
-- 接入登录/注册入口与路由（决定是启动页或我的页内触发）。
-- 天气模块：权限请求流程草稿 + 城市选择页框架。
-- 穿搭模块：RecyclerView 瀑布流骨架 + 筛选条/搜索入口占位。
-- 智能换装：上传/拍照流程设计稿及权限处理方案草稿。
+- 将仓库接入真实数据层（Retrofit+OkHttp 拦截器 + Room 持久化），保留 mock fallback，梳理 Repository 接口；联网校验需要处理依赖下载。
+- 登录/注册：对接鉴权 API 或更严格校验，Token 持久化（DataStore 已接入），登录后刷新收藏/设置；支持账号切换时清理本地数据。
+- 权限与城市回传：封装定位权限/拒绝重试，城市选择回传；天气接口 mock 接入并补加载/空/错误态与刷新、缓存最近城市/天气。
+- 穿搭模块：接后台数据 + 分页，Chip 筛选与搜索联动，收藏状态持久化（Room）并在 Profile/换装可用，空态/错误态/重试。
+- 智能换装：上传/拍照（FileProvider + 相机/存储权限链），提交任务到 mock/接口，轮询状态与结果展示，支持重拍/重试，使用收藏穿搭作为输入。
+- 质量与体验：新增 ViewModel/Repository 单测与关键 UI/权限流测试；优化导航返回/多 Tab 状态，完善空态/加载骨架与可访问性/本地化；主题/动画细化。
 
 ## 目录结构建议
 - Android：`app/src/main/java/.../ui/{home,weather,feed,tryon,profile}`，`data/{remote,local,repo}`，`domain/models`，`common`。
