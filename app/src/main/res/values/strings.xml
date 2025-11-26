@@ -45,4 +45,12 @@
     <string name="try_on_pick_favorite">选择收藏的穿搭</string>
     <string name="try_on_submit">提交换装请求</string>
     <string name="try_on_need_favorite">请先在穿搭页收藏一套穿搭</string>
+    <string name="tagging_title">穿搭图打标签</string>
+    <string name="tagging_action">上传穿搭图并生成标签</string>
+    <string name="tagging_status_idle">等待上传穿搭图</string>
+    <string name="tagging_preview_placeholder">尚未选择穿搭图</string>
+    <string name="tagging_tag_placeholder">标签结果将显示在这里</string>
+    <string name="tagging_suggested_name">推荐命名：%1$s</string>
+    <string name="tagging_status_processing">正在上传并生成标签…</string>
+    <string name="tagging_read_error">读取图片失败</string>
 </resources>

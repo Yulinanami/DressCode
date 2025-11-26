@@ -27,11 +27,135 @@
         android:gravity="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintBottom_toTopOf="@id/selection_summary"
+        app:layout_constraintBottom_toTopOf="@id/tagging_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/section_title"
         tools:text="等待换装任务" />
+
+    <TextView
+        android:id="@+id/tagging_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/tagging_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/section_subtitle" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/tagging_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="?attr/colorSurfaceVariant"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toBottomOf="@id/tagging_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/tagging_preview"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:background="?attr/colorSurfaceVariant"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/tagging_preview_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tagging_file_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tagging_preview_placeholder"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:id="@+id/tagging_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/tagging_status_idle"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tagging_suggested"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorPrimary"
+                        android:visibility="gone"
+                        tools:text="推荐命名：outfit_summer.jpg"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tagging_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="8dp"
+                android:text="@string/tagging_tag_placeholder"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="性别：女\n整体风格：极简\n季节：夏" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_tagging"
+        style="@style/Widget.Material3.LinearProgressIndicator"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tagging_card"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_tag_outfit"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/tagging_action"
+        app:layout_constraintTop_toBottomOf="@id/progress_tagging"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/selection_summary"
@@ -43,7 +167,7 @@
         android:text="@string/try_on_selection_placeholder"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
-        app:layout_constraintTop_toBottomOf="@id/section_subtitle"
+        app:layout_constraintTop_toBottomOf="@id/btn_tag_outfit"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

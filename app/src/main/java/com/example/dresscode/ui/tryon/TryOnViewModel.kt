@@ -6,10 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.dresscode.data.repository.OutfitRepository
+import com.example.dresscode.data.repository.TaggingRepository
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.model.OutfitPreview
+import com.example.dresscode.model.TaggingUiState
 import com.example.dresscode.model.TryOnUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -17,11 +21,15 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class TryOnViewModel @Inject constructor(
     private val repository: TryOnRepository,
-    private val outfitRepository: OutfitRepository
+    private val outfitRepository: OutfitRepository,
+    private val taggingRepository: TaggingRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())
     val uiState: LiveData<TryOnUiState> = _uiState
+
+    private val _taggingState = MutableLiveData(TaggingUiState())
+    val taggingState: LiveData<TaggingUiState> = _taggingState
 
     val favorites = outfitRepository.favorites()
         .map { favs -> outfitRepository.featured().filter { favs.contains(it.id) } }
@@ -63,6 +71,97 @@ class TryOnViewModel @Inject constructor(
                     selectedOutfitTitle = selectedOutfit?.title
                 )
             )
+        }
+    }
+
+    fun uploadOutfitForTags(fileName: String, bytes: ByteArray) {
+        val base = _taggingState.value ?: TaggingUiState()
+        _taggingState.value = base.copy(
+            status = "上传中，正在生成标签",
+            isUploading = true,
+            error = null,
+            selectedFileName = fileName
+        )
+        viewModelScope.launch {
+            runCatching { taggingRepository.uploadForTags(fileName, bytes) }
+                .onSuccess { result ->
+                    _taggingState.postValue(
+                        base.copy(
+                            status = "标签生成完成",
+                            isUploading = false,
+                            selectedFileName = result.originalName,
+                            suggestedName = result.suggestedName,
+                            tagsPreview = formatTags(result.tagsJson),
+                            error = null
+                        )
+                    )
+                }
+                .onFailure { error ->
+                    _taggingState.postValue(
+                        base.copy(
+                            status = "打标签失败",
+                            isUploading = false,
+                            error = error.message ?: "上传失败，请稍后重试"
+                        )
+                    )
+                }
+        }
+    }
+
+    private fun formatTags(raw: String?): String? {
+        if (raw.isNullOrBlank()) return null
+        return runCatching {
+            val json = JSONObject(raw)
+            buildString { appendObject(json, 0) }.trim()
+        }.getOrElse { raw }
+    }
+
+    private fun StringBuilder.appendObject(obj: JSONObject, indent: Int) {
+        val keys = obj.keys().asSequence().toList()
+        keys.forEachIndexed { index, key ->
+            val value = obj.get(key)
+            append(" ".repeat(indent)).append(key).append(": ")
+            when (value) {
+                is JSONObject -> {
+                    append("\n")
+                    appendObject(value, indent + 2)
+                }
+                is JSONArray -> {
+                    appendArray(value, indent + 2)
+                }
+                else -> append(value.toString())
+            }
+            if (index != keys.lastIndex) append("\n")
+        }
+    }
+
+    private fun StringBuilder.appendArray(array: JSONArray, indent: Int) {
+        if (array.length() == 0) {
+            append("[]")
+            return
+        }
+        val simpleItems = (0 until array.length()).all { idx ->
+            val item = array.get(idx)
+            item !is JSONObject && item !is JSONArray
+        }
+        if (simpleItems) {
+            val joined = (0 until array.length()).joinToString(", ") { array.get(it).toString() }
+            append(joined)
+        } else {
+            append("\n")
+            for (i in 0 until array.length()) {
+                val item = array.get(i)
+                append(" ".repeat(indent)).append("- ")
+                when (item) {
+                    is JSONObject -> {
+                        append("\n")
+                        appendObject(item, indent + 2)
+                    }
+                    is JSONArray -> appendArray(item, indent + 2)
+                    else -> append(item.toString())
+                }
+                if (i != array.length() - 1) append("\n")
+            }
         }
     }
 

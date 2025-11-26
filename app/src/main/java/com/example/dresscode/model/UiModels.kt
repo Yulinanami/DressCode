@@ -40,6 +40,15 @@ data class TryOnUiState(
     val resultPreview: String? = null
 )
 
+data class TaggingUiState(
+    val status: String = "上传穿搭图获取标签",
+    val selectedFileName: String? = null,
+    val suggestedName: String? = null,
+    val tagsPreview: String? = null,
+    val isUploading: Boolean = false,
+    val error: String? = null
+)
+
 data class ProfileUiState(
     val title: String = "我的",
     val subtitle: String = "未登录",

@@ -19,6 +19,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "TAGGING_BASE_URL",
+            "\"${project.findProperty("TAGGING_BASE_URL") ?: "http://10.0.2.2:8000"}\""
+        )
     }
 
     buildTypes {
@@ -39,6 +44,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -59,6 +65,8 @@ dependencies {
     implementation(libs.hilt.navigation)
     kapt(libs.hilt.compiler)
     implementation(libs.datastore.preferences)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
