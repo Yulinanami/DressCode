@@ -61,15 +61,20 @@
                 android:src="@android:drawable/ic_menu_search"
                 android:tint="?attr/colorOnSurfaceVariant" />
 
-            <TextView
-                android:id="@+id/search_hint"
+            <EditText
+                android:id="@+id/search_input"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="8dp"
-                android:text="@string/search_hint"
+                android:background="@android:color/transparent"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurfaceVariant" />
 
             <ImageView
                 android:id="@+id/search_filter"
@@ -105,37 +110,56 @@
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:text="@string/filter_gender"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checkable="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/filter_style"
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:text="@string/filter_style"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checkable="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/filter_scene"
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:text="@string/filter_scene"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checkable="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/filter_weather"
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:text="@string/filter_weather"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checkable="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/filter_season"
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:text="@string/filter_season"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checkable="true" />
         </LinearLayout>
     </HorizontalScrollView>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_feed"
+        style="@style/Widget.Material3.LinearProgressIndicator"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="6dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/filter_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/outfit_list"
@@ -148,7 +172,7 @@
         android:paddingBottom="12dp"
         app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
         app:spanCount="2"
-        app:layout_constraintTop_toBottomOf="@id/filter_bar"
+        app:layout_constraintTop_toBottomOf="@id/progress_feed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

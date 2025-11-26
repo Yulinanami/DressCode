@@ -1,10 +1,14 @@
 package com.example.dresscode.model
 
+enum class Gender { FEMALE, MALE, UNISEX }
+
 data class WeatherUiState(
     val title: String = "天气",
     val city: String = "未定位",
     val summary: String = "等待天气数据",
-    val temperature: String = "--°"
+    val temperature: String = "--°",
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 data class AuthState(
@@ -17,13 +21,23 @@ data class AuthState(
 data class OutfitUiState(
     val title: String = "穿搭",
     val highlight: String = "探索穿搭灵感",
-    val filters: String = "默认筛选：全部"
+    val filters: String = "默认筛选：全部",
+    val query: String = "",
+    val selectedGender: Gender? = null,
+    val selectedTags: Set<String> = emptySet(),
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 data class TryOnUiState(
     val title: String = "智能换装",
     val status: String = "暂未提交任务",
-    val hint: String = "上传人像并选择收藏穿搭"
+    val hint: String = "上传人像并选择收藏穿搭",
+    val selectedPhotoLabel: String? = null,
+    val selectedOutfitTitle: String? = null,
+    val isSubmitting: Boolean = false,
+    val error: String? = null,
+    val resultPreview: String? = null
 )
 
 data class ProfileUiState(
@@ -35,5 +49,7 @@ data class ProfileUiState(
 data class OutfitPreview(
     val id: String,
     val title: String,
-    val tags: List<String>
+    val tags: List<String>,
+    val gender: Gender = Gender.UNISEX,
+    val isFavorite: Boolean = false
 )
