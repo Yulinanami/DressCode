@@ -46,12 +46,26 @@ class WeatherRepository @Inject constructor(
 
     fun snapshot(): WeatherUiState = lastSnapshot
 
-    suspend fun fetch(city: String?): WeatherUiState = withContext(Dispatchers.IO) {
+    suspend fun fetch(
+        city: String?,
+        lat: Double? = null,
+        lon: Double? = null
+    ): WeatherUiState = withContext(Dispatchers.IO) {
         val normalizedCity: String = city?.takeIf { it.isNotBlank() } ?: lastSnapshot.city
         val encodedCity = URLEncoder.encode(normalizedCity, "UTF-8")
+        val queryParams = buildList {
+            if (lat != null && lon != null) {
+                add("lat=$lat")
+                add("lon=$lon")
+            } else {
+                add("city=$encodedCity")
+            }
+        }
         val url = buildString {
             append(baseUrl.trimEnd('/')).append("/weather/now")
-            append("?city=").append(encodedCity)
+            if (queryParams.isNotEmpty()) {
+                append("?").append(queryParams.joinToString("&"))
+            }
         }
         suspend fun requestOnce(): WeatherUiState {
             val request = Request.Builder()

@@ -39,6 +39,7 @@
     <string name="permission_location_rationale">需要定位以展示当前天气和推荐</string>
     <string name="btn_request_permission">允许定位</string>
     <string name="btn_select_city">选择城市</string>
+    <string name="location_unavailable">未能获取定位，请稍后重试或手动选城</string>
     <string name="action_favorite">收藏</string>
     <string name="action_favorited">已收藏</string>
     <string name="feed_item_placeholder">待接入详情：%1$s</string>
