@@ -19,6 +19,13 @@ class WeatherViewModel @Inject constructor(
     private val _uiState = MutableLiveData(repository.snapshot())
     val uiState: LiveData<WeatherUiState> = _uiState
     private val requestId = AtomicInteger(0)
+    private var hasAutoRefreshed = false
+
+    fun shouldAutoRefresh(): Boolean {
+        if (hasAutoRefreshed) return false
+        hasAutoRefreshed = true
+        return true
+    }
 
     fun refresh(city: String? = null, lat: Double? = null, lon: Double? = null) {
         val current = _uiState.value ?: repository.snapshot()

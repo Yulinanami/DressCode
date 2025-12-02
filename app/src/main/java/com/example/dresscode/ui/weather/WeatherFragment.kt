@@ -61,7 +61,9 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             findNavController().navigate(R.id.action_weather_to_city_select)
         }
 
-        attemptAutoLocate()
+        if (viewModel.shouldAutoRefresh()) {
+            attemptAutoLocate()
+        }
     }
 
     private fun attemptAutoLocate() {
