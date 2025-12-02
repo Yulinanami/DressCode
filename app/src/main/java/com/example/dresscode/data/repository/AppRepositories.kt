@@ -168,6 +168,7 @@ class UserRepository(
     private val passwordKey = stringPreferencesKey("user_password")
     private val displayNameKey = stringPreferencesKey("display_name")
     private val tokenKey = stringPreferencesKey("auth_token")
+    private val tokenExpiresKey = stringPreferencesKey("token_expires_at")
 
     fun authState(): Flow<AuthState> = dataStore.data.map { prefs ->
         val email = prefs[emailKey]
@@ -228,10 +229,12 @@ class UserRepository(
                     val displayName = json.optString("display_name")
                         .ifBlank { displayNameFromEmail(trimmedEmail) }
                     val emailFromResponse = json.optString("email").ifBlank { trimmedEmail }
+                    val expiresAt = json.optString("expires_at").ifBlank { null }
                     dataStore.edit { prefs ->
                         prefs[emailKey] = emailFromResponse
                         prefs[tokenKey] = token
                         prefs[displayNameKey] = displayName
+                        expiresAt?.let { prefs[tokenExpiresKey] = it }
                         prefs[passwordKey] = "" // 清空本地旧密码存储
                     }
                     return@withContext AuthResult.Success
@@ -247,7 +250,12 @@ class UserRepository(
     private fun parseError(body: String): String? {
         return try {
             val json = JSONObject(body)
-            json.optString("detail").takeIf { it.isNotBlank() }
+            val detail = json.opt("detail")
+            when (detail) {
+                is JSONObject -> detail.optString("message").ifBlank { detail.optString("code") }
+                is String -> detail
+                else -> null
+            }?.takeIf { it.isNotBlank() }
                 ?: json.optString("message").takeIf { it.isNotBlank() }
         } catch (_: Exception) {
             null

@@ -37,7 +37,8 @@ class LoginViewModel @Inject constructor(
         _uiState.value = current.copy(mode = nextMode, error = null, info = null)
     }
 
-    fun submit(email: String, password: String) {
+    fun submit(email: String, password: String, confirmPassword: String?) {
+        if (_uiState.value?.isLoading == true) return
         val trimmedEmail = email.trim()
         val trimmedPassword = password.trim()
         if (trimmedEmail.isEmpty()) {
@@ -49,6 +50,13 @@ class LoginViewModel @Inject constructor(
             return
         }
         val activeMode = _uiState.value?.mode ?: AuthMode.LOGIN
+        if (activeMode == AuthMode.REGISTER) {
+            val confirm = confirmPassword?.trim().orEmpty()
+            if (confirm != trimmedPassword) {
+                _uiState.value = (_uiState.value ?: LoginUiState()).copy(error = "两次输入的密码不一致")
+                return
+            }
+        }
         _uiState.value = (_uiState.value ?: LoginUiState()).copy(isLoading = true, error = null, info = null)
         viewModelScope.launch {
             val result = if (activeMode == AuthMode.LOGIN) {

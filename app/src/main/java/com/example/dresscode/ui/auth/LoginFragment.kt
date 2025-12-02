@@ -25,7 +25,8 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         binding.btnLogin.setOnClickListener {
             viewModel.submit(
                 binding.inputEmail.text?.toString().orEmpty(),
-                binding.inputPassword.text?.toString().orEmpty()
+                binding.inputPassword.text?.toString().orEmpty(),
+                binding.inputPasswordConfirm.text?.toString()
             )
         }
 
@@ -49,6 +50,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             } else {
                 getString(R.string.register_subtitle)
             }
+            binding.fieldPasswordConfirm.isVisible = state.mode == AuthMode.REGISTER
             binding.fieldPassword.helperText = if (state.mode == AuthMode.REGISTER) {
                 getString(R.string.password_hint)
             } else {
@@ -57,13 +59,16 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             binding.progress.isVisible = state.isLoading
             binding.fieldEmail.isEnabled = !state.isLoading
             binding.fieldPassword.isEnabled = !state.isLoading
+            binding.fieldPasswordConfirm.isEnabled = !state.isLoading
             if (state.error != null) {
                 binding.fieldPassword.error = null
                 binding.fieldEmail.error = null
+                binding.fieldPasswordConfirm.error = null
                 Snackbar.make(binding.root, state.error, Snackbar.LENGTH_SHORT).show()
             } else {
                 binding.fieldEmail.error = null
                 binding.fieldPassword.error = null
+                binding.fieldPasswordConfirm.error = null
             }
             if (state.info != null) {
                 Snackbar.make(binding.root, state.info, Snackbar.LENGTH_SHORT).show()

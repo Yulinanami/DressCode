@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dresscode.data.repository.OutfitRepository
+import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.Gender
 import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.model.OutfitPreview
@@ -12,11 +13,13 @@ import com.example.dresscode.model.OutfitUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class OutfitFeedViewModel @Inject constructor(
-    private val repository: OutfitRepository
+    private val repository: OutfitRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())
@@ -28,12 +31,19 @@ class OutfitFeedViewModel @Inject constructor(
     private var filters = OutfitFilters()
     private var favorites: Set<String> = emptySet()
     private var query: String = ""
+    private var isLoggedIn: Boolean = false
 
     init {
         viewModelScope.launch {
             repository.favorites().collectLatest { favs ->
                 favorites = favs
                 rebuild()
+            }
+        }
+        viewModelScope.launch {
+            isLoggedIn = userRepository.authState().first().isLoggedIn
+            userRepository.authState().collectLatest { auth ->
+                isLoggedIn = auth.isLoggedIn
             }
         }
         refresh()
@@ -63,6 +73,11 @@ class OutfitFeedViewModel @Inject constructor(
     }
 
     fun toggleFavorite(id: String) {
+        if (!isLoggedIn) {
+            val base = _uiState.value ?: repository.snapshot()
+            _uiState.value = base.copy(error = "登录后才能收藏穿搭")
+            return
+        }
         repository.toggleFavorite(id)
     }
 

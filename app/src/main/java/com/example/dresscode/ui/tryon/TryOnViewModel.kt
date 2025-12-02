@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.data.repository.TaggingRepository
 import com.example.dresscode.data.repository.TryOnRepository
+import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.model.TaggingUiState
 import com.example.dresscode.model.TryOnUiState
@@ -15,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -22,7 +24,8 @@ import kotlinx.coroutines.launch
 class TryOnViewModel @Inject constructor(
     private val repository: TryOnRepository,
     private val outfitRepository: OutfitRepository,
-    private val taggingRepository: TaggingRepository
+    private val taggingRepository: TaggingRepository,
+    userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())
@@ -37,6 +40,15 @@ class TryOnViewModel @Inject constructor(
 
     private var selectedPhotoLabel: String? = null
     private var selectedOutfit: OutfitPreview? = null
+    private var isLoggedIn = false
+
+    init {
+        viewModelScope.launch {
+            userRepository.authState().collectLatest { auth ->
+                isLoggedIn = auth.isLoggedIn
+            }
+        }
+    }
 
     fun refresh() {
         _uiState.value = repository.snapshot()
@@ -54,6 +66,13 @@ class TryOnViewModel @Inject constructor(
 
     fun submitTryOn() {
         val base = _uiState.value ?: repository.snapshot()
+        if (!isLoggedIn) {
+            _uiState.value = base.copy(
+                error = "请登录后再提交换装",
+                isSubmitting = false
+            )
+            return
+        }
         if (selectedPhotoLabel.isNullOrBlank() || selectedOutfit == null) {
             _uiState.value = base.copy(
                 error = "请先选择人像和收藏的穿搭",

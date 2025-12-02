@@ -29,6 +29,8 @@
     <string name="action_go_register">没有账号？去注册</string>
     <string name="action_go_login">已有账号？去登录</string>
     <string name="password_hint">至少 6 位密码</string>
+    <string name="password_confirm">确认密码</string>
+    <string name="password_confirm_hint">再次输入以确认密码</string>
     <string name="msg_register_success">注册成功，已自动登录</string>
     <string name="msg_login_success">登录成功</string>
     <string name="login_email_error">请输入有效邮箱</string>
