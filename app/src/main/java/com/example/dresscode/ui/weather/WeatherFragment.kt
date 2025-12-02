@@ -129,8 +129,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private fun showLoadingDialog() {
         if (loadingDialog?.isShowing == true) return
         val context = requireContext()
+        val view = layoutInflater.inflate(R.layout.dialog_loading, null)
+        view.findViewById<android.widget.TextView>(R.id.text_loading)
+            ?.text = getString(R.string.weather_loading)
         loadingDialog = MaterialAlertDialogBuilder(context)
-            .setView(R.layout.dialog_loading)
+            .setView(view)
             .setCancelable(false)
             .create().also { dialog ->
                 dialog.show()

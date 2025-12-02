@@ -14,10 +14,11 @@
         app:indicatorSize="40dp" />
 
     <TextView
+        android:id="@+id/text_loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="@string/weather_loading"
+        android:text="@string/loading_generic"
         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
 </LinearLayout>
