@@ -52,9 +52,9 @@
 - Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
 - 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换，底栏采用自定义图标与主题色。
 - ViewModel + 仓库完成，Fragment 通过 LiveData 订阅 UI 状态；导航切换附加动画与状态恢复配置；Profile/Login 支持后端登录/注册/退出，新增注册确认密码、重复提交防抖。
-- 基本资源与字符串已填充（Tab 标题、动画、配色）；尚未接入真实数据源（穿搭/天气/换装仍为占位）。
+- 基本资源与字符串已填充（Tab 标题、动画、配色）；天气已接入后端实时数据（穿搭/换装仍为占位）。
 - 引入 Hilt 并注入仓库，Activity/Fragment/ViewModel 均已标注；底栏导航动画与状态保存生效。
-- 穿搭列表 UI 骨架完成（搜索卡片、筛选 Chip、瀑布流 RecyclerView 与占位数据）；收藏操作已校验登录态（未登录弹错误）；天气页添加定位/选城按钮及城市选择列表（占位数据）。
+- 穿搭列表 UI 骨架完成（搜索卡片、筛选 Chip、瀑布流 RecyclerView 与占位数据）；收藏操作已校验登录态（未登录弹错误）；天气页支持启动时自动定位一次、手动城市选择/输入、后端数据刷新，加载采用弹窗圆形进度。
 - 智能换装页支持穿搭图打标签：前端用 OkHttp 调用后端 `tag-and-suggest-name`，选图上传、标签文本化展示；未登录或未选人像/收藏穿搭会拦截提交。
 - 完成度评估：页面骨架与主题就绪；数据/权限流/错误态多为占位（无 Retrofit/Room），收藏与换装未接真实后端；无多 back stack、可访问性、本地化，测试缺失。
 
@@ -62,14 +62,14 @@
 - 代码路径：`D:/MyProjects/fashion_tagging_project`，入口 `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`（`api_server.py` 仍可兼容）。
 - 结构：FastAPI + SQLAlchemy，模块化至 `app/`（routers/auth, health, tagging；services/llm_client/tagging/renaming/json_writer；db/config/security/models/schemas）。
 - 鉴权：MySQL `dresscode`（root/20040129），users 表含密码哈希、访问 token + 1h 过期、refresh token + 7d 过期；接口 `/auth/register` `/auth/login` `/auth/refresh` `/auth/me`，错误码统一。
-- 打标签：`POST /tag-and-suggest-name`/`/tag-image` 复用本地大模型接口（需 GEMINI_API_KEY），返回标签与建议文件名。
+- 打标签：`POST /tag-and-suggest-name`/`/tag-image` 复用本地大模型接口（需 GEMINI_API_KEY），返回标签与建议文件名；天气接口 `/weather/now` 接入和风城市查找+实时天气，支持城市名/LocationID/经纬度查询，内存缓存与日志完备。
 - 数据现状：仅 users 表入库；穿搭/收藏/换装等未落库，仍为前端占位。
 
 ## 下一步 TODO（前端优先）
 - 细化主题/图标（如需设计稿适配），完善状态栏/导航栏沉浸与动画细节。
 - 将仓库接入真实数据层（Retrofit+OkHttp 拦截器 + Room 持久化），保留 mock fallback；接入后端鉴权接口的 token/refresh（含失效自动刷新）与收藏/换装等业务接口。
 - 登录/注册：更严格校验与账号切换数据清理；登录后刷新收藏/设置；处理多端 token 过期与 refresh。
-- 权限与城市回传：封装定位权限/拒绝重试，城市选择回传；天气接口接入并补加载/空/错误态与刷新、缓存最近城市/天气。
+- 权限与城市回传：定位权限与城市选择已接；待完善天气错误/空态、缓存最近城市/天气、异常提示与重试体验。
 - 穿搭模块：对接后台数据 + 分页，收藏状态持久化（Room+后端）、Chip 筛选与搜索联动，空态/错误态/重试。
 - 智能换装：上传/拍照（FileProvider + 相机/存储权限链），提交任务到 mock/接口，轮询状态与结果展示，支持重拍/重试，使用收藏穿搭作为输入；标签结果用于推荐/筛选联动；切换到 HTTPS 或收敛明文白名单。
 - 质量与体验：新增 ViewModel/Repository 单测与关键 UI/权限流测试；优化导航返回/多 Tab 状态，完善空态/加载骨架与可访问性/本地化；主题/动画细化。
