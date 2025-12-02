@@ -8,8 +8,10 @@ import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentLoginBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.appcompat.app.AlertDialog
 
 @AndroidEntryPoint
 class LoginFragment : Fragment(R.layout.fragment_login) {
@@ -17,6 +19,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private val viewModel: LoginViewModel by viewModels()
+    private var loadingDialog: AlertDialog? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -56,10 +59,10 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             } else {
                 null
             }
-            binding.progress.isVisible = state.isLoading
             binding.fieldEmail.isEnabled = !state.isLoading
             binding.fieldPassword.isEnabled = !state.isLoading
             binding.fieldPasswordConfirm.isEnabled = !state.isLoading
+            if (state.isLoading) showLoadingDialog() else hideLoadingDialog()
             if (state.error != null) {
                 binding.fieldPassword.error = null
                 binding.fieldEmail.error = null
@@ -84,6 +87,26 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        hideLoadingDialog()
         _binding = null
+    }
+
+    private fun showLoadingDialog() {
+        if (loadingDialog?.isShowing == true) return
+        val context = requireContext()
+        val view = layoutInflater.inflate(R.layout.dialog_loading, null)
+        view.findViewById<android.widget.TextView>(R.id.text_loading)
+            ?.text = getString(R.string.auth_loading)
+        loadingDialog = MaterialAlertDialogBuilder(context)
+            .setView(view)
+            .setCancelable(false)
+            .create().also { dialog ->
+                dialog.show()
+            }
+    }
+
+    private fun hideLoadingDialog() {
+        loadingDialog?.dismiss()
+        loadingDialog = null
     }
 }
