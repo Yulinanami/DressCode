@@ -51,26 +51,27 @@
 ## 当前进度（前端）
 - Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
 - 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换，底栏采用自定义图标与主题色。
-- ViewModel + 仓库占位完成，Fragment 通过 LiveData 订阅占位 UI 状态；导航切换附加动画与状态恢复配置；Profile/Login 已有本地 DataStore 模拟登录/注册/退出流程与 UI 切换。
-- 基本资源与字符串已填充（Tab 标题、动画、配色），尚未接入实际数据。
-- 尚未运行构建/测试，可能需联网下载依赖。
+- ViewModel + 仓库完成，Fragment 通过 LiveData 订阅 UI 状态；导航切换附加动画与状态恢复配置；Profile/Login 支持后端登录/注册/退出，新增注册确认密码、重复提交防抖。
+- 基本资源与字符串已填充（Tab 标题、动画、配色）；尚未接入真实数据源（穿搭/天气/换装仍为占位）。
 - 引入 Hilt 并注入仓库，Activity/Fragment/ViewModel 均已标注；底栏导航动画与状态保存生效。
-- 穿搭列表 UI 骨架完成（搜索卡片、筛选 Chip、瀑布流 RecyclerView 与占位数据）；登录页骨架与 Profile 入口可跳转；天气页添加定位/选城按钮及城市选择列表（占位数据）。
-- 目前 APP 可正常运行与页面切换（已修复布局 crash）。
-- 智能换装页新增穿搭图打标签链路：前端用 OkHttp 调用 `tag-and-suggest-name`，支持选图上传、明文网络安全配置、标签文本化展示（不再显示 JSON）；TryOn 仍为占位提交。
-- 完成度评估：页面骨架与主题就绪；交互/数据均为占位（无 Retrofit/Room、无加载/空/错误态）；权限流未实现（定位/相机/存储），城市选择未回传；登录表单无鉴权与校验；无多 back stack 和深度导航；设计细化与可访问性、本地化待定；无测试覆盖。
-  • - 已为主要页面补齐“后端就绪”的前端框架：天气支持加载/错误状态，城市选择回传；穿搭页支持搜索、性别/标签筛选、收藏按钮与加载条；换装页新增人像/收藏穿搭选择、占位提交、进度与错误
-  提示。
-    - 数据与模型扩充：增加性别/筛选、收藏状态、异步结果包装，仓库提供搜索/收藏管理、天气和换装的异步占位流程，ViewModel 统一用协程/LiveData 驱动 UI。
-    - UI 文案与布局同步更新，增加搜索输入框、筛选 Chips 可勾选、收藏按钮、加载条，以及换装选择与提交按钮
+- 穿搭列表 UI 骨架完成（搜索卡片、筛选 Chip、瀑布流 RecyclerView 与占位数据）；收藏操作已校验登录态（未登录弹错误）；天气页添加定位/选城按钮及城市选择列表（占位数据）。
+- 智能换装页支持穿搭图打标签：前端用 OkHttp 调用后端 `tag-and-suggest-name`，选图上传、标签文本化展示；未登录或未选人像/收藏穿搭会拦截提交。
+- 完成度评估：页面骨架与主题就绪；数据/权限流/错误态多为占位（无 Retrofit/Room），收藏与换装未接真实后端；无多 back stack、可访问性、本地化，测试缺失。
+
+## 当前进度（后端）
+- 代码路径：`D:/MyProjects/fashion_tagging_project`，入口 `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`（`api_server.py` 仍可兼容）。
+- 结构：FastAPI + SQLAlchemy，模块化至 `app/`（routers/auth, health, tagging；services/llm_client/tagging/renaming/json_writer；db/config/security/models/schemas）。
+- 鉴权：MySQL `dresscode`（root/20040129），users 表含密码哈希、访问 token + 1h 过期、refresh token + 7d 过期；接口 `/auth/register` `/auth/login` `/auth/refresh` `/auth/me`，错误码统一。
+- 打标签：`POST /tag-and-suggest-name`/`/tag-image` 复用本地大模型接口（需 GEMINI_API_KEY），返回标签与建议文件名。
+- 数据现状：仅 users 表入库；穿搭/收藏/换装等未落库，仍为前端占位。
 
 ## 下一步 TODO（前端优先）
 - 细化主题/图标（如需设计稿适配），完善状态栏/导航栏沉浸与动画细节。
-- 将仓库接入真实数据层（Retrofit+OkHttp 拦截器 + Room 持久化），保留 mock fallback，梳理 Repository 接口；联网校验需要处理依赖下载。
-- 登录/注册：对接鉴权 API 或更严格校验，Token 持久化（DataStore 已接入），登录后刷新收藏/设置；支持账号切换时清理本地数据。
-- 权限与城市回传：封装定位权限/拒绝重试，城市选择回传；天气接口 mock 接入并补加载/空/错误态与刷新、缓存最近城市/天气。
-- 穿搭模块：接后台数据 + 分页，Chip 筛选与搜索联动，收藏状态持久化（Room）并在 Profile/换装可用，空态/错误态/重试。
-- 智能换装：上传/拍照（FileProvider + 相机/存储权限链），提交任务到 mock/接口，轮询状态与结果展示，支持重拍/重试，使用收藏穿搭作为输入；将穿搭图打标签结果用于推荐/筛选联动，并切换到 HTTPS 或收敛明文白名单。
+- 将仓库接入真实数据层（Retrofit+OkHttp 拦截器 + Room 持久化），保留 mock fallback；接入后端鉴权接口的 token/refresh（含失效自动刷新）与收藏/换装等业务接口。
+- 登录/注册：更严格校验与账号切换数据清理；登录后刷新收藏/设置；处理多端 token 过期与 refresh。
+- 权限与城市回传：封装定位权限/拒绝重试，城市选择回传；天气接口接入并补加载/空/错误态与刷新、缓存最近城市/天气。
+- 穿搭模块：对接后台数据 + 分页，收藏状态持久化（Room+后端）、Chip 筛选与搜索联动，空态/错误态/重试。
+- 智能换装：上传/拍照（FileProvider + 相机/存储权限链），提交任务到 mock/接口，轮询状态与结果展示，支持重拍/重试，使用收藏穿搭作为输入；标签结果用于推荐/筛选联动；切换到 HTTPS 或收敛明文白名单。
 - 质量与体验：新增 ViewModel/Repository 单测与关键 UI/权限流测试；优化导航返回/多 Tab 状态，完善空态/加载骨架与可访问性/本地化；主题/动画细化。
 
 ## 目录结构建议
