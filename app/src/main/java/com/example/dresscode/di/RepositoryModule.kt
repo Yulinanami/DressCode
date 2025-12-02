@@ -13,6 +13,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import javax.inject.Named
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -50,7 +51,14 @@ object RepositoryModule {
 
     @Provides
     @Singleton
+    @Named("authBaseUrl")
+    fun provideAuthBaseUrl(): String = BuildConfig.API_BASE_URL
+
+    @Provides
+    @Singleton
     fun provideUserRepository(
-        @ApplicationContext context: Context
-    ): UserRepository = UserRepository(context)
+        @ApplicationContext context: Context,
+        client: OkHttpClient,
+        @Named("authBaseUrl") authBaseUrl: String
+    ): UserRepository = UserRepository(context, client, authBaseUrl)
 }

@@ -1,7 +1,6 @@
 package com.example.dresscode.data.repository
 
 import android.content.Context
-import android.util.Patterns
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -14,12 +13,20 @@ import com.example.dresscode.model.ProfileUiState
 import com.example.dresscode.model.TryOnUiState
 import com.example.dresscode.model.WeatherUiState
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.UUID
+import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import android.util.Patterns
 
 private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
 
@@ -151,7 +158,9 @@ class TryOnRepository {
 }
 
 class UserRepository(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val client: OkHttpClient,
+    private val authBaseUrl: String
 ) {
 
     private val dataStore = context.authDataStore
@@ -176,7 +185,17 @@ class UserRepository(
         }
     }
 
-    suspend fun register(email: String, password: String): AuthResult {
+    suspend fun register(email: String, password: String): AuthResult =
+        performAuth("register", email, password)
+
+    suspend fun login(email: String, password: String): AuthResult =
+        performAuth("login", email, password)
+
+    private suspend fun performAuth(
+        endpoint: String,
+        email: String,
+        password: String
+    ): AuthResult {
         val trimmedEmail = email.trim()
         if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             return AuthResult.Error("邮箱格式不正确")
@@ -184,31 +203,55 @@ class UserRepository(
         if (password.length < 6) {
             return AuthResult.Error("密码至少 6 位")
         }
-        dataStore.edit { prefs ->
-            prefs[emailKey] = trimmedEmail
-            prefs[passwordKey] = password
-            prefs[displayNameKey] = displayNameFromEmail(trimmedEmail)
-            prefs[tokenKey] = UUID.randomUUID().toString()
+        val payload = JSONObject()
+            .put("email", trimmedEmail)
+            .put("password", password)
+        val request = Request.Builder()
+            .url("${authBaseUrl.trimEnd('/')}/auth/$endpoint")
+            .post(payload.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        return withContext(Dispatchers.IO) {
+            try {
+                client.newCall(request).execute().use { response ->
+                    val bodyString = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) {
+                        val message = parseError(bodyString)
+                            ?: "服务异常：HTTP ${response.code}"
+                        return@withContext AuthResult.Error(message)
+                    }
+                    val json = JSONObject(bodyString)
+                    val token = json.optString("token")
+                    if (token.isBlank()) {
+                        return@withContext AuthResult.Error("登录失败：服务器未返回 token")
+                    }
+                    val displayName = json.optString("display_name")
+                        .ifBlank { displayNameFromEmail(trimmedEmail) }
+                    val emailFromResponse = json.optString("email").ifBlank { trimmedEmail }
+                    dataStore.edit { prefs ->
+                        prefs[emailKey] = emailFromResponse
+                        prefs[tokenKey] = token
+                        prefs[displayNameKey] = displayName
+                        prefs[passwordKey] = "" // 清空本地旧密码存储
+                    }
+                    return@withContext AuthResult.Success
+                }
+            } catch (e: IOException) {
+                return@withContext AuthResult.Error("网络错误：${e.message ?: "请稍后重试"}")
+            } catch (e: Exception) {
+                return@withContext AuthResult.Error("登录失败：${e.message ?: "未知错误"}")
+            }
         }
-        return AuthResult.Success
     }
 
-    suspend fun login(email: String, password: String): AuthResult {
-        val trimmedEmail = email.trim()
-        val current = dataStore.data.first()
-        val storedEmail = current[emailKey] ?: return AuthResult.Error("请先注册账号")
-        val storedPassword = current[passwordKey] ?: return AuthResult.Error("请先注册账号")
-        if (storedEmail != trimmedEmail) {
-            return AuthResult.Error("账号不存在或未注册")
+    private fun parseError(body: String): String? {
+        return try {
+            val json = JSONObject(body)
+            json.optString("detail").takeIf { it.isNotBlank() }
+                ?: json.optString("message").takeIf { it.isNotBlank() }
+        } catch (_: Exception) {
+            null
         }
-        if (storedPassword != password) {
-            return AuthResult.Error("密码不正确")
-        }
-        dataStore.edit { prefs ->
-            val existingToken = prefs[tokenKey]?.takeIf { it.isNotBlank() }
-            prefs[tokenKey] = existingToken ?: UUID.randomUUID().toString()
-        }
-        return AuthResult.Success
     }
 
     suspend fun logout() {
