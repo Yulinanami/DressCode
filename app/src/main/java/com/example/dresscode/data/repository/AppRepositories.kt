@@ -14,12 +14,13 @@ import com.example.dresscode.model.TryOnUiState
 import com.example.dresscode.model.WeatherUiState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
+import java.net.URLEncoder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -27,26 +28,79 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import android.util.Patterns
+import javax.inject.Inject
+import javax.inject.Named
 
 private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
 
-class WeatherRepository {
-    private val weatherByCity = mapOf(
-        "上海" to WeatherUiState(city = "上海", summary = "晴·微风", temperature = "26°"),
-        "北京" to WeatherUiState(city = "北京", summary = "多云·北风", temperature = "24°"),
-        "深圳" to WeatherUiState(city = "深圳", summary = "阵雨·湿热", temperature = "29°"),
-        "杭州" to WeatherUiState(city = "杭州", summary = "阴·东南风", temperature = "25°"),
-        "广州" to WeatherUiState(city = "广州", summary = "多云·闷热", temperature = "30°"),
-        "成都" to WeatherUiState(city = "成都", summary = "小雨·凉爽", temperature = "22°"),
-        "南京" to WeatherUiState(city = "南京", summary = "晴·微风", temperature = "27°"),
-        "武汉" to WeatherUiState(city = "武汉", summary = "多云·闷热", temperature = "31°")
+class WeatherRepository @Inject constructor(
+    private val client: OkHttpClient,
+    @Named("weatherBaseUrl") private val baseUrl: String
+) {
+
+    @Volatile
+    private var lastSnapshot: WeatherUiState = WeatherUiState(
+        city = "杭州",
+        summary = "等待天气数据"
     )
 
-    fun snapshot(): WeatherUiState = weatherByCity["上海"] ?: WeatherUiState()
+    fun snapshot(): WeatherUiState = lastSnapshot
 
-    suspend fun fetch(city: String?): WeatherUiState {
-        delay(150) // placeholder for backend call
-        return weatherByCity[city] ?: snapshot().copy(city = city ?: "未定位")
+    suspend fun fetch(city: String?): WeatherUiState = withContext(Dispatchers.IO) {
+        val normalizedCity: String = city?.takeIf { it.isNotBlank() } ?: lastSnapshot.city
+        val encodedCity = URLEncoder.encode(normalizedCity, "UTF-8")
+        val url = buildString {
+            append(baseUrl.trimEnd('/')).append("/weather/now")
+            append("?city=").append(encodedCity)
+        }
+        suspend fun requestOnce(): WeatherUiState {
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw IOException("天气服务异常：HTTP ${response.code}")
+                }
+                val payload = response.body?.string().orEmpty()
+                if (payload.isBlank()) {
+                    throw IOException("天气服务返回空响应")
+                }
+                val json = JSONObject(payload)
+                val now = json.optJSONObject("now")
+                val cityName = json.optString("city").ifBlank { normalizedCity }
+                val temp = now?.optString("temp")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: json.optString("temperature").takeIf { it.isNotBlank() }
+                val summaryParts = mutableListOf<String>()
+                val text = now?.optString("text").orEmpty()
+                if (text.isNotBlank()) summaryParts.add(text)
+                val windDir = now?.optString("wind_dir")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: now?.optString("windDir")?.takeIf { it.isNotBlank() }
+                windDir?.let { summaryParts.add(it) }
+                val humidity = now?.optString("humidity").orEmpty()
+                if (humidity.isNotBlank()) summaryParts.add("湿度${humidity}%")
+                val summary = summaryParts.joinToString(" · ")
+                    .ifBlank { json.optString("summary").ifBlank { "天气数据待更新" } }
+                lastSnapshot = WeatherUiState(
+                    city = cityName,
+                    summary = summary,
+                    temperature = temp?.let { "${it}°" } ?: "--°",
+                    error = null
+                )
+                return lastSnapshot
+            }
+        }
+
+        return@withContext runCatching { requestOnce() }
+            .getOrElse { firstError ->
+                // 简单重试一次，避免偶发 5xx
+                delay(500)
+                runCatching { requestOnce() }.getOrElse { secondError ->
+                    throw secondError.also { lastSnapshot = lastSnapshot.copy(error = it.message) }
+                }
+            }
     }
 }
 

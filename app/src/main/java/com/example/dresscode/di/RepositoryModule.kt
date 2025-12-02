@@ -23,7 +23,15 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideWeatherRepository(): WeatherRepository = WeatherRepository()
+    @Named("weatherBaseUrl")
+    fun provideWeatherBaseUrl(): String = BuildConfig.API_BASE_URL
+
+    @Provides
+    @Singleton
+    fun provideWeatherRepository(
+        client: OkHttpClient,
+        @Named("weatherBaseUrl") baseUrl: String
+    ): WeatherRepository = WeatherRepository(client, baseUrl)
 
     @Provides
     @Singleton
