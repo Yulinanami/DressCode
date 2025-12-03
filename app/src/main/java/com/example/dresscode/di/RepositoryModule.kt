@@ -2,7 +2,10 @@ package com.example.dresscode.di
 
 import android.content.Context
 import com.example.dresscode.BuildConfig
+import com.example.dresscode.data.local.db.DressCodeDatabase
+import com.example.dresscode.data.remote.OutfitApiService
 import com.example.dresscode.data.repository.OutfitRepository
+import com.example.dresscode.data.repository.SettingsRepository
 import com.example.dresscode.data.repository.TaggingRepository
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.data.repository.UserRepository
@@ -16,6 +19,11 @@ import javax.inject.Singleton
 import javax.inject.Named
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import androidx.room.Room
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,6 +36,11 @@ object RepositoryModule {
 
     @Provides
     @Singleton
+    @Named("apiBaseUrl")
+    fun provideApiBaseUrl(): String = BuildConfig.API_BASE_URL
+
+    @Provides
+    @Singleton
     fun provideWeatherRepository(
         client: OkHttpClient,
         @Named("weatherBaseUrl") baseUrl: String
@@ -35,7 +48,11 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideOutfitRepository(): OutfitRepository = OutfitRepository()
+    fun provideOutfitRepository(
+        api: OutfitApiService,
+        database: DressCodeDatabase,
+        userRepository: UserRepository
+    ): OutfitRepository = OutfitRepository(api, database, userRepository)
 
     @Provides
     @Singleton
@@ -69,4 +86,39 @@ object RepositoryModule {
         client: OkHttpClient,
         @Named("authBaseUrl") authBaseUrl: String
     ): UserRepository = UserRepository(context, client, authBaseUrl)
+
+    @Provides
+    @Singleton
+    fun provideMoshi(): Moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+        client: OkHttpClient,
+        moshi: Moshi,
+        @Named("apiBaseUrl") baseUrl: String
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl.trimEnd('/') + "/")
+        .client(client)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideOutfitApiService(retrofit: Retrofit): OutfitApiService =
+        retrofit.create(OutfitApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): DressCodeDatabase =
+        Room.databaseBuilder(context, DressCodeDatabase::class.java, "dresscode.db")
+            .fallbackToDestructiveMigration()
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(@ApplicationContext context: Context): SettingsRepository =
+        SettingsRepository(context)
 }

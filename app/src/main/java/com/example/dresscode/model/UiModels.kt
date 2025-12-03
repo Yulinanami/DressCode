@@ -23,7 +23,12 @@ data class OutfitUiState(
     val highlight: String = "探索穿搭灵感",
     val filters: String = "默认筛选：全部",
     val query: String = "",
+    val recentQueries: List<String> = emptyList(),
     val selectedGender: Gender? = null,
+    val selectedStyle: String? = null,
+    val selectedSeason: String? = null,
+    val selectedScene: String? = null,
+    val selectedWeather: String? = null,
     val selectedTags: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val error: String? = null
@@ -58,6 +63,7 @@ data class ProfileUiState(
 data class OutfitPreview(
     val id: String,
     val title: String,
+    val imageUrl: String? = null,
     val tags: List<String>,
     val gender: Gender = Gender.UNISEX,
     val isFavorite: Boolean = false

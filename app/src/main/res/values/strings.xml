@@ -13,10 +13,13 @@
     <string name="search_hint">搜索风格 / 单品 / 场景</string>
     <string name="filter_default">全部</string>
     <string name="filter_gender">性别</string>
+    <string name="filter_gender_male">男</string>
+    <string name="filter_gender_female">女</string>
     <string name="filter_style">风格</string>
     <string name="filter_scene">场景</string>
     <string name="filter_weather">天气</string>
     <string name="filter_season">季节</string>
+    <string name="filter_all">全部</string>
     <string name="filter_placeholder">筛选面板待接入后端</string>
     <string name="btn_login">登录 / 注册</string>
     <string name="btn_login_submit">登录</string>
@@ -49,6 +52,9 @@
     <string name="action_favorite">收藏</string>
     <string name="action_favorited">已收藏</string>
     <string name="feed_item_placeholder">待接入详情：%1$s</string>
+    <string name="feed_empty_title">暂无穿搭</string>
+    <string name="feed_empty_subtitle">调整筛选或检查网络后再试</string>
+    <string name="feed_retry">重新加载</string>
     <string name="try_on_selection_placeholder">人像：未选择\n穿搭：未选择</string>
     <string name="try_on_pick_photo">上传 / 拍摄人像</string>
     <string name="try_on_pick_favorite">选择收藏的穿搭</string>
@@ -62,4 +68,38 @@
     <string name="tagging_suggested_name">推荐命名：%1$s</string>
     <string name="tagging_status_processing">正在上传并生成标签…</string>
     <string name="tagging_read_error">读取图片失败</string>
+    <string-array name="filter_options_style">
+        <item>通勤</item>
+        <item>休闲</item>
+        <item>运动</item>
+        <item>优雅</item>
+        <item>街头</item>
+        <item>复古</item>
+    </string-array>
+    <string-array name="filter_options_gender">
+        <item>女</item>
+        <item>男</item>
+    </string-array>
+    <string-array name="filter_options_scene">
+        <item>通勤</item>
+        <item>办公室</item>
+        <item>运动</item>
+        <item>出街</item>
+        <item>约会</item>
+        <item>旅行</item>
+    </string-array>
+    <string-array name="filter_options_weather">
+        <item>晴</item>
+        <item>多云</item>
+        <item>雨天</item>
+        <item>雪天</item>
+        <item>阴</item>
+    </string-array>
+    <string-array name="filter_options_season">
+        <item>春季</item>
+        <item>夏季</item>
+        <item>秋季</item>
+        <item>冬季</item>
+        <item>四季</item>
+    </string-array>
 </resources>

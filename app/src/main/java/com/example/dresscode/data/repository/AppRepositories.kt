@@ -5,20 +5,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.dresscode.model.AuthState
-import com.example.dresscode.model.Gender
-import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.model.OutfitPreview
-import com.example.dresscode.model.OutfitUiState
 import com.example.dresscode.model.ProfileUiState
 import com.example.dresscode.model.TryOnUiState
 import com.example.dresscode.model.WeatherUiState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.net.URLEncoder
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -30,6 +23,8 @@ import org.json.JSONObject
 import android.util.Patterns
 import javax.inject.Inject
 import javax.inject.Named
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
 
@@ -115,84 +110,6 @@ class WeatherRepository @Inject constructor(
                     throw secondError.also { lastSnapshot = lastSnapshot.copy(error = it.message) }
                 }
             }
-    }
-}
-
-class OutfitRepository {
-    private val featured = listOf(
-        OutfitPreview(
-            id = "look-1",
-            title = "夏日通勤",
-            tags = listOf("夏季", "通勤", "简约"),
-            gender = Gender.FEMALE
-        ),
-        OutfitPreview(
-            id = "look-2",
-            title = "周末休闲",
-            tags = listOf("休闲", "牛仔"),
-            gender = Gender.UNISEX
-        ),
-        OutfitPreview(
-            id = "look-3",
-            title = "运动风",
-            tags = listOf("运动", "街头"),
-            gender = Gender.MALE
-        ),
-        OutfitPreview(
-            id = "look-4",
-            title = "雨天通勤",
-            tags = listOf("雨天", "通勤", "防水"),
-            gender = Gender.FEMALE
-        ),
-        OutfitPreview(
-            id = "look-5",
-            title = "晚间约会",
-            tags = listOf("约会", "优雅", "夏季"),
-            gender = Gender.FEMALE
-        )
-    )
-    private val favorites = MutableStateFlow<Set<String>>(emptySet())
-
-    fun featured(): List<OutfitPreview> = featured
-
-    fun snapshot(): OutfitUiState = OutfitUiState(
-        highlight = "精选穿搭 ${featured.size} 套",
-        filters = "默认筛选：全部"
-    )
-
-    fun search(query: String, filters: OutfitFilters): List<OutfitPreview> {
-        val normalizedQuery = query.trim()
-        return featured.filter { preview ->
-            matchesGender(filters.gender, preview.gender) &&
-                matchesTags(filters.tags, preview.tags) &&
-                matchesQuery(normalizedQuery, preview)
-        }
-    }
-
-    fun toggleFavorite(id: String) {
-        val current = favorites.value
-        favorites.value = if (current.contains(id)) current - id else current + id
-    }
-
-    fun favorites(): Flow<Set<String>> = favorites
-
-    fun findById(id: String): OutfitPreview? = featured.find { it.id == id }
-
-    private fun matchesGender(target: Gender?, actual: Gender): Boolean {
-        if (target == null) return true
-        if (target == Gender.UNISEX) return true
-        return target == actual || actual == Gender.UNISEX
-    }
-
-    private fun matchesTags(required: Set<String>, tags: List<String>): Boolean {
-        if (required.isEmpty()) return true
-        return required.all { requiredTag -> tags.any { it.contains(requiredTag, ignoreCase = true) } }
-    }
-
-    private fun matchesQuery(query: String, preview: OutfitPreview): Boolean {
-        if (query.isBlank()) return true
-        return preview.title.contains(query, ignoreCase = true) ||
-            preview.tags.any { it.contains(query, ignoreCase = true) }
     }
 }
 

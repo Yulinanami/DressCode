@@ -17,7 +17,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -34,9 +33,7 @@ class TryOnViewModel @Inject constructor(
     private val _taggingState = MutableLiveData(TaggingUiState())
     val taggingState: LiveData<TaggingUiState> = _taggingState
 
-    val favorites = outfitRepository.favorites()
-        .map { favs -> outfitRepository.featured().filter { favs.contains(it.id) } }
-        .asLiveData()
+    val favorites = outfitRepository.observeFavorites().asLiveData()
 
     private var selectedPhotoLabel: String? = null
     private var selectedOutfit: OutfitPreview? = null
