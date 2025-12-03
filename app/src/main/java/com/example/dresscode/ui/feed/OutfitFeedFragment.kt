@@ -56,6 +56,7 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
         }
         binding.btnRetry.setOnClickListener { adapter.retry() }
         binding.swipeRefresh.setOnRefreshListener { adapter.refresh() }
+        binding.btnClearFilters.setOnClickListener { viewModel.clearFilters() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.pagingData.collectLatest { pagingData ->

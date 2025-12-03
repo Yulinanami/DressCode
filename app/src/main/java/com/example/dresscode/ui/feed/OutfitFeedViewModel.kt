@@ -118,6 +118,11 @@ class OutfitFeedViewModel @Inject constructor(
         manualFilters.value = manualFilters.value.copy(weather = value)
     }
 
+    fun clearFilters() {
+        manualFilters.value = OutfitFilters()
+        queryFlow.value = ""
+    }
+
     fun toggleFavorite(id: String) {
         viewModelScope.launch {
             repository.toggleFavorite(id)

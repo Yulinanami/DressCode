@@ -55,6 +55,7 @@
     <string name="feed_empty_title">暂无穿搭</string>
     <string name="feed_empty_subtitle">调整筛选或检查网络后再试</string>
     <string name="feed_retry">重新加载</string>
+    <string name="feed_clear_filters">清空筛选</string>
     <string name="try_on_selection_placeholder">人像：未选择\n穿搭：未选择</string>
     <string name="try_on_pick_photo">上传 / 拍摄人像</string>
     <string name="try_on_pick_favorite">选择收藏的穿搭</string>
