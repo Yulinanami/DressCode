@@ -1,6 +1,7 @@
 package com.example.dresscode.ui.weather
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.location.LocationManager
@@ -44,16 +45,20 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         _binding = FragmentWeatherBinding.bind(view)
         observeCitySelection()
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.sectionTitle.text = state.title
-            binding.sectionSubtitle.text =
-                getString(R.string.weather_placeholder, state.city, state.summary, state.temperature)
+            binding.sectionTitle.text = state.city
+            binding.weatherSummary.text = getString(
+                R.string.weather_card_title,
+                state.city,
+                state.temperature
+            )
+            binding.weatherDetails.text = state.summary
             if (state.isLoading) showLoadingDialog() else hideLoadingDialog()
             if (state.error != null) {
                 Snackbar.make(binding.root, state.error, Snackbar.LENGTH_SHORT).show()
             }
         }
 
-        binding.btnRequestLocation.setOnClickListener {
+        binding.btnRequestPermission.setOnClickListener {
             attemptAutoLocate()
         }
 
@@ -89,19 +94,23 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     private fun hasLocationPermission(): Boolean {
+        val context = requireContext()
         val hasCoarse = ContextCompat.checkSelfPermission(
-            requireContext(),
+            context,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PermissionChecker.PERMISSION_GRANTED
         val hasFine = ContextCompat.checkSelfPermission(
-            requireContext(),
+            context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PermissionChecker.PERMISSION_GRANTED
         return hasCoarse || hasFine
     }
 
+    @SuppressLint("MissingPermission")
     private fun latestLocation(): Location? {
-        val manager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (!hasLocationPermission()) return null
+        val context = requireContext()
+        val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val providers = listOf(
             LocationManager.NETWORK_PROVIDER,
             LocationManager.GPS_PROVIDER
