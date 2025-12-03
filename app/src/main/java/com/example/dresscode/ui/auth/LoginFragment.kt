@@ -29,7 +29,8 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             viewModel.submit(
                 binding.inputEmail.text?.toString().orEmpty(),
                 binding.inputPassword.text?.toString().orEmpty(),
-                binding.inputPasswordConfirm.text?.toString()
+                binding.inputPasswordConfirm.text?.toString(),
+                binding.inputDisplayName.text?.toString().orEmpty()
             )
         }
 
@@ -54,6 +55,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 getString(R.string.register_subtitle)
             }
             binding.fieldPasswordConfirm.isVisible = state.mode == AuthMode.REGISTER
+            binding.fieldDisplayName.isVisible = state.mode == AuthMode.REGISTER
             binding.fieldPassword.helperText = if (state.mode == AuthMode.REGISTER) {
                 getString(R.string.password_hint)
             } else {
@@ -62,6 +64,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             binding.fieldEmail.isEnabled = !state.isLoading
             binding.fieldPassword.isEnabled = !state.isLoading
             binding.fieldPasswordConfirm.isEnabled = !state.isLoading
+            binding.fieldDisplayName.isEnabled = !state.isLoading
             if (state.isLoading) showLoadingDialog() else hideLoadingDialog()
             if (state.error != null) {
                 binding.fieldPassword.error = null

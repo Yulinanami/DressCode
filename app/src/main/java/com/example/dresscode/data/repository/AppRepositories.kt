@@ -171,16 +171,17 @@ class UserRepository(
         }
     }
 
-    suspend fun register(email: String, password: String): AuthResult =
-        performAuth("register", email, password)
+    suspend fun register(email: String, password: String, displayName: String): AuthResult =
+        performAuth("register", email, password, displayName)
 
     suspend fun login(email: String, password: String): AuthResult =
-        performAuth("login", email, password)
+        performAuth("login", email, password, null)
 
     private suspend fun performAuth(
         endpoint: String,
         email: String,
-        password: String
+        password: String,
+        displayName: String?
     ): AuthResult {
         val trimmedEmail = email.trim()
         if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
@@ -192,6 +193,7 @@ class UserRepository(
         val payload = JSONObject()
             .put("email", trimmedEmail)
             .put("password", password)
+        displayName?.takeIf { it.isNotBlank() }?.let { payload.put("display_name", it) }
         val request = Request.Builder()
             .url("${authBaseUrl.trimEnd('/')}/auth/$endpoint")
             .post(payload.toString().toRequestBody("application/json".toMediaType()))

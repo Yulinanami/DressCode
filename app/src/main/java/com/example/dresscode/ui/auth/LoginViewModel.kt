@@ -37,10 +37,11 @@ class LoginViewModel @Inject constructor(
         _uiState.value = current.copy(mode = nextMode, error = null, info = null)
     }
 
-    fun submit(email: String, password: String, confirmPassword: String?) {
+    fun submit(email: String, password: String, confirmPassword: String?, displayName: String?) {
         if (_uiState.value?.isLoading == true) return
         val trimmedEmail = email.trim()
         val trimmedPassword = password.trim()
+        val trimmedDisplayName = displayName?.trim().orEmpty()
         if (trimmedEmail.isEmpty()) {
             _uiState.value = (_uiState.value ?: LoginUiState()).copy(error = "请输入邮箱")
             return
@@ -56,13 +57,17 @@ class LoginViewModel @Inject constructor(
                 _uiState.value = (_uiState.value ?: LoginUiState()).copy(error = "两次输入的密码不一致")
                 return
             }
+            if (trimmedDisplayName.isEmpty()) {
+                _uiState.value = (_uiState.value ?: LoginUiState()).copy(error = "请输入昵称")
+                return
+            }
         }
         _uiState.value = (_uiState.value ?: LoginUiState()).copy(isLoading = true, error = null, info = null)
         viewModelScope.launch {
             val result = if (activeMode == AuthMode.LOGIN) {
                 repository.login(trimmedEmail, trimmedPassword)
             } else {
-                repository.register(trimmedEmail, trimmedPassword)
+                repository.register(trimmedEmail, trimmedPassword, trimmedDisplayName)
             }
             val nextState = when (result) {
                 is AuthResult.Error -> (_uiState.value ?: LoginUiState()).copy(

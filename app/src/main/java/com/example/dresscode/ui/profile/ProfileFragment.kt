@@ -51,6 +51,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     navigateToLogin()
                 }
             }
+            binding.sectionTitle.text = auth.displayName ?: getString(R.string.tab_profile)
             binding.sectionTitle.setOnClickListener { navigateIfGuest() }
             binding.sectionSubtitle.setOnClickListener { navigateIfGuest() }
         }
