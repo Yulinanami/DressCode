@@ -49,21 +49,23 @@
 7) 测试与发布：多版本设备测试、权限/存储回归、性能与网络降级；准备发布构建与演示数据。
 
 ## 当前进度（前端）
-- Kotlin 化工程，添加 Navigation/Lifecycle/Core-ktx 依赖，开启 viewBinding。
-- 单 Activity + BottomNavigation + NavHost 骨架搭好，四个占位 Fragment（天气/穿搭/智能换装/我的）可切换，底栏采用自定义图标与主题色。
-- ViewModel + 仓库完成，Fragment 通过 LiveData 订阅 UI 状态；导航切换附加动画与状态恢复配置；Profile/Login 支持后端登录/注册/退出，新增注册确认密码、重复提交防抖。
-- 基本资源与字符串已填充（Tab 标题、动画、配色）；天气已接入后端实时数据（穿搭/换装仍为占位）。
-- 引入 Hilt 并注入仓库，Activity/Fragment/ViewModel 均已标注；底栏导航动画与状态保存生效。
-- 穿搭列表 UI 骨架完成（搜索卡片、筛选 Chip、瀑布流 RecyclerView 与占位数据）；收藏操作已校验登录态（未登录弹错误）；天气页支持启动时自动定位一次、手动城市选择/输入、后端数据刷新，加载采用弹窗圆形进度。
-- 智能换装页支持穿搭图打标签：前端用 OkHttp 调用后端 `tag-and-suggest-name`，选图上传、标签文本化展示；未登录或未选人像/收藏穿搭会拦截提交。
-- 完成度评估：页面骨架与主题就绪；数据/权限流/错误态多为占位（无 Retrofit/Room），收藏与换装未接真实后端；无多 back stack、可访问性、本地化，测试缺失。
+- Kotlin 化工程，Navigation/Lifecycle/Core-ktx 依赖齐全，viewBinding 开启。
+- 单 Activity + BottomNavigation + NavHost 骨架稳定，四个 Fragment（天气/穿搭/智能换装/我的）可切换；主题、图标、动画完成。
+- 数据层接入 Retrofit + Room + Paging：穿搭列表支持分页、筛选（性别/风格/季节/场景/天气）、搜索、空态/重试；收藏状态持久化并与后端同步，登录校验与 token 过期提示完善；收藏列表页（我的收藏）可查看/取消收藏。
+- 天气页：新版纵向布局，顶部城市标题；定位/选城按钮分列；卡片显示城市+温度（加粗）与摘要小字；权限检查与缺失提示。
+- 登录/注册：增加昵称输入（注册必填），昵称在“我的”页展示；注册/登录流程防抖与提示；未登录收藏会拦截并提示登录。
+- 个人中心：线性排布，显示昵称/邮箱，收藏入口在卡片内可跳转；布局美化。
+- 智能换装：保留打标签上传与登录校验；其他功能待接后端。
+- 完成度评估：核心界面与数据流已接通（穿搭/收藏、天气）；换装/权限流/测试仍需补充。
 
 ## 当前进度（后端）
 - 代码路径：`D:/MyProjects/fashion_tagging_project`，入口 `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`（`api_server.py` 仍可兼容）。
-- 结构：FastAPI + SQLAlchemy，模块化至 `app/`（routers/auth, health, tagging；services/llm_client/tagging/renaming/json_writer；db/config/security/models/schemas）。
-- 鉴权：MySQL `dresscode`（root/20040129），users 表含密码哈希、访问 token + 1h 过期、refresh token + 7d 过期；接口 `/auth/register` `/auth/login` `/auth/refresh` `/auth/me`，错误码统一。
-- 打标签：`POST /tag-and-suggest-name`/`/tag-image` 复用本地大模型接口（需 GEMINI_API_KEY），返回标签与建议文件名；天气接口 `/weather/now` 接入和风城市查找+实时天气，支持城市名/LocationID/经纬度查询，内存缓存与日志完备。
-- 数据现状：仅 users 表入库；穿搭/收藏/换装等未落库，仍为前端占位。
+- 结构：FastAPI + SQLAlchemy，模块化至 `app/`（auth/health/tagging/weather/outfits），服务层与配置分离。
+- 鉴权：MySQL `dresscode`（root/20040129），users 表含密码哈希、token/refresh；接口 `/auth/register`（支持 display_name）`/auth/login` `/auth/refresh` `/auth/me`。
+- 穿搭/收藏：新增模型 outfits/favorites，启动自动建表与种子数据；接口 `/outfits`（分页筛选、isFavorite 支持）`/outfits/{id}`，收藏接口 `/favorites` GET/POST/DELETE（需 Bearer，401 处理），响应字段与前端契约一致。
+- 天气：`/weather/now` 接入和风天气，支持城市/经纬度，缓存与日志完备。
+- 打标签：`POST /tag-and-suggest-name`/`/tag-image` 对接本地大模型，需 GEMINI_API_KEY。
+- 数据现状：users/outfits/favorites 已入库，穿搭/收藏落库并同步前端；换装等其余功能待扩展。
 
 ## 下一步 TODO（前端优先）
 - 细化主题/图标（如需设计稿适配），完善状态栏/导航栏沉浸与动画细节。
