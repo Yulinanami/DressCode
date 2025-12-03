@@ -8,6 +8,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentProfileBinding
 import dagger.hilt.android.AndroidEntryPoint
+import com.google.android.material.snackbar.Snackbar
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
@@ -32,6 +33,15 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 if (auth.isLoggedIn) {
                     viewModel.logout()
                 } else {
+                    navigateToLogin()
+                }
+            }
+
+            binding.btnFavorites.setOnClickListener {
+                if (auth.isLoggedIn) {
+                    findNavController().navigate(R.id.action_profileFragment_to_favoritesFragment)
+                } else {
+                    Snackbar.make(binding.root, R.string.favorites_need_login, Snackbar.LENGTH_SHORT).show()
                     navigateToLogin()
                 }
             }

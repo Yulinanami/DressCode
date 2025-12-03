@@ -9,6 +9,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.data.repository.SettingsRepository
+import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.Gender
 import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.model.OutfitPreview
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class OutfitFeedViewModel @Inject constructor(
     private val repository: OutfitRepository,
+    private val userRepository: UserRepository,
     settingsRepository: SettingsRepository
 ) : ViewModel() {
 
@@ -83,6 +85,11 @@ class OutfitFeedViewModel @Inject constructor(
             }.collect { state -> _uiState.postValue(state) }
         }
         viewModelScope.launch { repository.refreshFavoritesFromRemote() }
+        viewModelScope.launch {
+            userRepository.authState().collect { auth ->
+                isLoggedIn = auth.isLoggedIn
+            }
+        }
     }
 
     fun onSearchQueryChanged(text: String) {
@@ -123,8 +130,15 @@ class OutfitFeedViewModel @Inject constructor(
         queryFlow.value = ""
     }
 
+    private var isLoggedIn: Boolean = false
+
     fun toggleFavorite(id: String) {
         viewModelScope.launch {
+            if (!isLoggedIn) {
+                val base = _uiState.value ?: OutfitUiState()
+                _uiState.postValue(base.copy(error = "请登录后再收藏"))
+                return@launch
+            }
             repository.toggleFavorite(id)
                 .onFailure { error ->
                     val base = _uiState.value ?: OutfitUiState()

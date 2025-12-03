@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 
 class OutfitRepository @Inject constructor(
     private val api: OutfitApiService,
@@ -90,27 +92,38 @@ class OutfitRepository @Inject constructor(
                 }
                 outfitDao.updateFavorite(id, targetFavorite)
                 targetFavorite
+            }.recoverCatching { error ->
+                if (error is HttpException && error.code() == 401) {
+                    userRepository.logout()
+                    throw IllegalStateException("登录已过期，请重新登录")
+                }
+                throw error
             }
         }
     }
 
-    suspend fun refreshFavoritesFromRemote() {
+    suspend fun refreshFavoritesFromRemote(): Result<Unit> {
         val auth = userRepository.authState().first()
-        val token = auth.token ?: return
-        runCatching {
-            val bearer = "Bearer $token"
-            val favorites = api.getFavorites(bearer)
-            val entities = favorites.map { dto ->
-                dto.toFavoriteEntity()
-            }
-            withContext(Dispatchers.IO) {
+        val token = auth.token ?: return Result.failure(IllegalStateException("未登录"))
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val bearer = "Bearer $token"
+                val favorites = api.getFavorites(bearer)
+                val entities = favorites.map { dto ->
+                    dto.toFavoriteEntity()
+                }
                 favoriteDao.clearAll()
                 outfitDao.clearFavoriteFlags()
-                entities.forEach { favoriteDao.upsert(it) }
-                // 同步列表上的收藏标记
                 entities.forEach { favorite ->
+                    favoriteDao.upsert(favorite)
                     outfitDao.updateFavorite(favorite.outfitId, true)
                 }
+            }.recoverCatching { error ->
+                if (error is HttpException && error.code() == 401) {
+                    userRepository.logout()
+                    throw IllegalStateException("登录已过期，请重新登录")
+                }
+                throw error
             }
         }
     }

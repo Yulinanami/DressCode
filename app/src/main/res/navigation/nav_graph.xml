@@ -35,6 +35,9 @@
         <action
             android:id="@+id/action_profileFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
     </fragment>
 
     <fragment
@@ -48,5 +51,11 @@
         android:name="com.example.dresscode.ui.weather.CitySelectFragment"
         android:label="@string/city_select_title"
         tools:layout="@layout/fragment_city_select" />
+
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.example.dresscode.ui.feed.FavoritesFragment"
+        android:label="@string/profile_favorites"
+        tools:layout="@layout/fragment_favorites" />
 
 </navigation>
