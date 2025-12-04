@@ -4,8 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.dresscode.data.repository.SettingsRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.AuthState
+import com.example.dresscode.model.Gender
 import com.example.dresscode.model.ProfileUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -14,7 +16,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     val authState: LiveData<AuthState> = repository.authState().asLiveData()
@@ -23,7 +26,14 @@ class ProfileViewModel @Inject constructor(
         .map { repository.profileFor(it) }
         .asLiveData()
 
+    val defaultGender: LiveData<Gender?> =
+        settingsRepository.defaultFilters().map { it.gender }.asLiveData()
+
     fun logout() {
         viewModelScope.launch { repository.logout() }
+    }
+
+    fun updateDefaultGender(gender: Gender?) {
+        viewModelScope.launch { settingsRepository.setDefaultGender(gender) }
     }
 }

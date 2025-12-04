@@ -16,7 +16,6 @@ import androidx.paging.LoadState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.view.inputmethod.EditorInfo
-import com.example.dresscode.model.Gender
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @AndroidEntryPoint
@@ -98,12 +97,6 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                 binding.searchInput.setText(state.query)
                 binding.searchInput.setSelection(state.query.length)
             }
-            binding.filterGender.text = when (state.selectedGender) {
-                Gender.MALE -> getString(R.string.filter_gender_male)
-                Gender.FEMALE -> getString(R.string.filter_gender_female)
-                Gender.UNISEX, null -> getString(R.string.filter_gender)
-            }
-            binding.filterGender.isChecked = state.selectedGender != null && state.selectedGender != Gender.UNISEX
             binding.filterStyle.text = state.selectedStyle ?: getString(R.string.filter_style)
             binding.filterScene.text = state.selectedScene ?: getString(R.string.filter_scene)
             binding.filterWeather.text = state.selectedWeather ?: getString(R.string.filter_weather)
@@ -119,14 +112,6 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
     }
 
     private fun setupFilters() {
-        binding.filterGender.setOnClickListener {
-            showFilterDialog(
-                title = getString(R.string.filter_gender),
-                options = resources.getStringArray(R.array.filter_options_gender).toList()
-            ) { selection ->
-                viewModel.setGenderFilter(selection)
-            }
-        }
         binding.filterStyle.setOnClickListener {
             showFilterDialog(
                 title = getString(R.string.filter_style),

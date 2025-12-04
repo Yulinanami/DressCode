@@ -100,15 +100,6 @@ class OutfitFeedViewModel @Inject constructor(
         viewModelScope.launch { repository.recordSearch(text) }
     }
 
-    fun setGenderFilter(label: String?) {
-        val gender = when (label) {
-            "男" -> Gender.MALE
-            "女" -> Gender.FEMALE
-            else -> null
-        }
-        manualFilters.value = manualFilters.value.copy(gender = gender)
-    }
-
     fun setStyleFilter(value: String?) {
         manualFilters.value = manualFilters.value.copy(style = value)
     }
