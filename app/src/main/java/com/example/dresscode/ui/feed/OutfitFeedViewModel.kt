@@ -16,6 +16,8 @@ import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.model.OutfitUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class OutfitFeedViewModel @Inject constructor(
     private val repository: OutfitRepository,
     private val userRepository: UserRepository,
@@ -136,10 +139,6 @@ class OutfitFeedViewModel @Inject constructor(
                     _uiState.postValue(base.copy(error = error.message ?: "收藏失败，请稍后重试"))
                 }
         }
-    }
-
-    fun refreshFavorites() {
-        viewModelScope.launch { repository.refreshFavoritesFromRemote() }
     }
 
     private fun buildFilterLabel(filters: OutfitFilters): String {
