@@ -13,6 +13,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import androidx.paging.LoadState
+import androidx.paging.CombinedLoadStates
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.view.inputmethod.EditorInfo
@@ -35,6 +36,7 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
     private var _binding: FragmentOutfitFeedBinding? = null
     private val binding get() = _binding!!
     private val viewModel: OutfitFeedViewModel by viewModels()
+    private var lastLoadStates: CombinedLoadStates? = null
     private val adapter by lazy {
         OutfitCardAdapter(
             onItemClick = { preview ->
@@ -86,8 +88,10 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             adapter.loadStateFlow.collectLatest { loadStates ->
-                binding.progressFeed.isVisible = loadStates.refresh is LoadState.Loading
-                binding.swipeRefresh.isRefreshing = loadStates.refresh is LoadState.Loading
+                val listLoading = loadStates.refresh is LoadState.Loading
+                lastLoadStates = loadStates
+                binding.progressFeed.isVisible = listLoading || (viewModel.uploadLoading.value == true)
+                binding.swipeRefresh.isRefreshing = listLoading
                 val isError = loadStates.refresh is LoadState.Error
                 val isEmpty = loadStates.refresh is LoadState.NotLoading &&
                     loadStates.append.endOfPaginationReached &&
@@ -117,7 +121,8 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
             }
         }
         viewModel.uploadLoading.observe(viewLifecycleOwner) { loading ->
-            binding.progressFeed.isVisible = loading
+            val listLoading = lastLoadStates?.refresh is LoadState.Loading
+            binding.progressFeed.isVisible = loading || listLoading
         }
     }
 

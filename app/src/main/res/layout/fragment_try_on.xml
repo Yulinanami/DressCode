@@ -176,17 +176,33 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_try_on_favorite" />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <LinearLayout
         android:id="@+id/progress_try_on"
-        style="@style/Widget.Material3.CircularProgressIndicator"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/favorites_strip"
-        tools:visibility="visible" />
+        tools:visibility="visible">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            style="@style/Widget.Material3.CircularProgressIndicator"
+            android:layout_width="32dp"
+            android:layout_height="32dp" />
+
+        <TextView
+            android:id="@+id/progress_try_on_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/try_on_generating"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_submit_try_on"
