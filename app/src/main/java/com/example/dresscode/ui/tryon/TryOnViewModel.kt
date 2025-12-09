@@ -8,6 +8,8 @@ import com.example.dresscode.data.repository.TryOnImage
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.TryOnUiState
+import com.example.dresscode.model.OutfitPreview
+import com.example.dresscode.data.repository.OutfitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
@@ -16,11 +18,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class TryOnViewModel @Inject constructor(
     private val repository: TryOnRepository,
-    userRepository: UserRepository
+    userRepository: UserRepository,
+    outfitRepository: OutfitRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())
     val uiState: LiveData<TryOnUiState> = _uiState
+    private val _favorites = MutableLiveData<List<OutfitPreview>>(emptyList())
+    val favorites: LiveData<List<OutfitPreview>> = _favorites
 
     private var selectedPhotoLabel: String? = null
     private var selectedPortraitImage: TryOnImage? = null
@@ -33,6 +38,11 @@ class TryOnViewModel @Inject constructor(
             userRepository.authState().collectLatest { auth ->
                 isLoggedIn = auth.isLoggedIn
                 authToken = auth.token
+            }
+        }
+        viewModelScope.launch {
+            outfitRepository.observeFavorites().collectLatest { list ->
+                _favorites.postValue(list)
             }
         }
     }
@@ -135,5 +145,36 @@ class TryOnViewModel @Inject constructor(
             selectedPhotoBytes = selectedPortraitImage?.bytes ?: base.selectedPhotoBytes,
             selectedOutfitBytes = selectedOutfitImage?.bytes ?: base.selectedOutfitBytes
         )
+    }
+
+    fun useFavoriteOutfit(outfit: OutfitPreview) {
+        viewModelScope.launch {
+            val base = _uiState.value ?: repository.snapshot()
+            val url = outfit.imageUrl
+            if (url.isNullOrBlank()) {
+                _uiState.postValue(base.copy(error = "该收藏缺少图片，无法用于换装"))
+                return@launch
+            }
+            val bytes = repository.downloadImage(url)
+            if (bytes == null) {
+                _uiState.postValue(base.copy(error = "下载收藏图片失败，请稍后重试"))
+                return@launch
+            }
+            selectedOutfitImage = TryOnImage(
+                fileName = outfit.title,
+                bytes = bytes,
+                mimeType = "image/jpeg"
+            )
+            _uiState.postValue(
+                base.copy(
+                    selectedOutfitTitle = outfit.title,
+                    selectedOutfitBytes = bytes,
+                    resultImageBase64 = null,
+                    resultPreview = null,
+                    error = null,
+                    hint = "已选择收藏穿搭，上传人像后提交"
+                )
+            )
+        }
     }
 }

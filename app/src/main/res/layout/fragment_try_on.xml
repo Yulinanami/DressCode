@@ -150,6 +150,32 @@
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/section_favorites_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/try_on_favorites_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/upload_row" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favorites_strip"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:layout_marginTop="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:clipToPadding="false"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/section_favorites_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_try_on_favorite" />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progress_try_on"
         style="@style/Widget.Material3.CircularProgressIndicator"
@@ -159,7 +185,7 @@
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/upload_row"
+        app:layout_constraintTop_toBottomOf="@id/favorites_strip"
         tools:visibility="visible" />
 
     <com.google.android.material.button.MaterialButton

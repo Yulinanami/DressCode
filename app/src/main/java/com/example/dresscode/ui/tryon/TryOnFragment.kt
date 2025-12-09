@@ -14,9 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.dresscode.R
 import com.example.dresscode.databinding.FragmentTryOnBinding
+import com.example.dresscode.ui.tryon.TryOnFavoriteAdapter
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.IOException
+import androidx.recyclerview.widget.LinearLayoutManager
 
 @AndroidEntryPoint
 class TryOnFragment : Fragment(R.layout.fragment_try_on) {
@@ -24,6 +26,11 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
     private var _binding: FragmentTryOnBinding? = null
     private val binding get() = _binding!!
     private val viewModel: TryOnViewModel by viewModels()
+    private val favoriteAdapter by lazy {
+        TryOnFavoriteAdapter { preview ->
+            viewModel.useFavoriteOutfit(preview)
+        }
+    }
 
     private val pickPortraitImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -42,6 +49,9 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentTryOnBinding.bind(view)
+        binding.favoritesStrip.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.favoritesStrip.adapter = favoriteAdapter
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             binding.sectionTitle.text = state.title
@@ -77,6 +87,12 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
             pickOutfitImage.launch("image/*")
         }
         binding.btnSubmitTryOn.setOnClickListener { viewModel.submitTryOn() }
+
+        viewModel.favorites.observe(viewLifecycleOwner) { list ->
+            favoriteAdapter.submitList(list)
+            binding.sectionFavoritesTitle.isVisible = list.isNotEmpty()
+            binding.favoritesStrip.isVisible = list.isNotEmpty()
+        }
     }
 
     override fun onDestroyView() {

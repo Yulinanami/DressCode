@@ -79,6 +79,7 @@
     <string name="try_on_outfit_status">尚未选择穿搭</string>
     <string name="try_on_pick_outfit">上传穿搭/衣物</string>
     <string name="try_on_result_title">换装结果</string>
+    <string name="try_on_favorites_title">我的收藏</string>
     <string name="tagging_title">穿搭图打标签</string>
     <string name="tagging_action">上传穿搭图并生成标签</string>
     <string name="tagging_status_idle">等待上传穿搭图</string>
