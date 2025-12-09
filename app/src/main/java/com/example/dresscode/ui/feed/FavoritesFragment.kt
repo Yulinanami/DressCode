@@ -103,6 +103,12 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         }
         dialog.setContentView(dialogBinding.root)
         dialog.setOnDismissListener { viewModel.clearDetail() }
+        dialog.setOnShowListener {
+            val behavior = dialog.behavior
+            behavior.skipCollapsed = true
+            behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+            dialogBinding.scrollContainer.post { dialogBinding.scrollContainer.scrollTo(0, 0) }
+        }
         dialog.show()
     }
 
