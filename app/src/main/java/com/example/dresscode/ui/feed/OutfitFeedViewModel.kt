@@ -14,6 +14,7 @@ import com.example.dresscode.model.Gender
 import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.model.OutfitUiState
+import com.example.dresscode.model.OutfitDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +53,10 @@ class OutfitFeedViewModel @Inject constructor(
 
     private val _uiState = MutableLiveData(OutfitUiState())
     val uiState: LiveData<OutfitUiState> = _uiState
+    private val _selectedDetail = MutableLiveData<OutfitDetail?>()
+    val selectedDetail: LiveData<OutfitDetail?> = _selectedDetail
+    private val _detailError = MutableLiveData<String?>()
+    val detailError: LiveData<String?> = _detailError
 
     val favorites: LiveData<List<OutfitPreview>> = repository.observeFavorites().asLiveData()
 
@@ -136,9 +141,24 @@ class OutfitFeedViewModel @Inject constructor(
             repository.toggleFavorite(id)
                 .onFailure { error ->
                     val base = _uiState.value ?: OutfitUiState()
-                    _uiState.postValue(base.copy(error = error.message ?: "收藏失败，请稍后重试"))
+                _uiState.postValue(base.copy(error = error.message ?: "收藏失败，请稍后重试"))
+            }
+        }
+    }
+
+    fun loadOutfitDetail(id: String) {
+        viewModelScope.launch {
+            repository.fetchOutfitDetail(id)
+                .onSuccess { detail -> _selectedDetail.postValue(detail) }
+                .onFailure { error ->
+                    _detailError.postValue(error.message ?: "加载穿搭详情失败")
                 }
         }
+    }
+
+    fun clearSelectedDetail() {
+        _selectedDetail.value = null
+        _detailError.value = null
     }
 
     private fun buildFilterLabel(filters: OutfitFilters): String {

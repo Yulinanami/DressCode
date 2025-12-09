@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.paging.PagingDataAdapter
 import coil.load
 import com.example.dresscode.R
+import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.ItemOutfitCardBinding
 import com.example.dresscode.model.OutfitPreview
 
@@ -45,12 +46,26 @@ class OutfitCardAdapter(
                 ContextCompat.getColor(binding.root.context, R.color.md_theme_light_onSurfaceVariant)
             }
             binding.btnFavorite.setTextColor(tint)
-            binding.outfitImage.load(item.imageUrl) {
+            val resolvedUrl = resolveUrl(item.imageUrl)
+            binding.outfitImage.load(resolvedUrl) {
                 crossfade(true)
                 placeholder(R.color.md_theme_light_surfaceVariant)
             }
             binding.root.setOnClickListener { onItemClick(item) }
             binding.btnFavorite.setOnClickListener { onFavoriteClick(item) }
+        }
+
+        private fun resolveUrl(url: String?): String? {
+            if (url.isNullOrBlank()) return null
+            return if (url.startsWith("http")) {
+                url
+            } else {
+                buildString {
+                    append(BuildConfig.API_BASE_URL.trimEnd('/'))
+                    if (!url.startsWith("/")) append("/")
+                    append(url)
+                }
+            }
         }
     }
 

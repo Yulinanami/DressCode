@@ -71,3 +71,10 @@ data class OutfitPreview(
     val gender: Gender = Gender.UNISEX,
     val isFavorite: Boolean = false
 )
+
+data class OutfitDetail(
+    val id: String,
+    val title: String,
+    val images: List<String> = emptyList(),
+    val tags: List<String> = emptyList()
+)

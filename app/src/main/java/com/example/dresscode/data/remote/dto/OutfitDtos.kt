@@ -4,6 +4,7 @@ data class OutfitDto(
     val id: String,
     val title: String,
     val imageUrl: String? = null,
+    val images: List<String>? = null,
     val gender: String? = null,
     val tags: OutfitTagsDto? = null,
     val isFavorite: Boolean? = null

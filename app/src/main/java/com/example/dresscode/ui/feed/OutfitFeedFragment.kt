@@ -17,6 +17,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.view.inputmethod.EditorInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.dresscode.model.OutfitDetail
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.view.LayoutInflater
+import android.widget.ImageView
+import android.view.ViewGroup
+import coil.load
+import com.example.dresscode.databinding.DialogOutfitDetailBinding
+import com.example.dresscode.BuildConfig
 
 @AndroidEntryPoint
 class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
@@ -27,7 +35,7 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
     private val adapter by lazy {
         OutfitCardAdapter(
             onItemClick = { preview ->
-                Snackbar.make(binding.root, getString(R.string.feed_item_placeholder, preview.title), Snackbar.LENGTH_SHORT).show()
+                viewModel.loadOutfitDetail(preview.id)
             },
             onFavoriteClick = { preview -> viewModel.toggleFavorite(preview.id) }
         )
@@ -78,6 +86,15 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                     val error = (loadStates.refresh as? LoadState.Error)?.error
                     Snackbar.make(binding.root, error?.message ?: getString(R.string.loading_generic), Snackbar.LENGTH_LONG).show()
                 }
+            }
+        }
+
+        viewModel.selectedDetail.observe(viewLifecycleOwner) { detail ->
+            detail?.let { showDetailSheet(it) }
+        }
+        viewModel.detailError.observe(viewLifecycleOwner) { error ->
+            if (error != null) {
+                Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
             }
         }
     }
@@ -152,6 +169,50 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                 onSelected(value)
             }
             .show()
+    }
+
+    private fun showDetailSheet(detail: OutfitDetail) {
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogOutfitDetailBinding.inflate(LayoutInflater.from(requireContext()))
+        dialogBinding.title.text = detail.title
+        dialogBinding.tags.text = if (detail.tags.isEmpty()) {
+            getString(R.string.filter_all)
+        } else {
+            detail.tags.joinToString(" · ")
+        }
+        dialogBinding.imageContainer.removeAllViews()
+        detail.images.forEach { url ->
+            val margin = (8 * resources.displayMetrics.density).toInt()
+            val imageView = ImageView(requireContext()).apply {
+                layoutParams = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).also { it.bottomMargin = margin }
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+            imageView.load(resolveUrl(url)) {
+                crossfade(true)
+                placeholder(R.color.md_theme_dark_surfaceVariant)
+            }
+            dialogBinding.imageContainer.addView(imageView)
+        }
+        dialog.setContentView(dialogBinding.root)
+        dialog.setOnDismissListener { viewModel.clearSelectedDetail() }
+        dialog.show()
+    }
+
+    private fun resolveUrl(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        return if (url.startsWith("http")) {
+            url
+        } else {
+            buildString {
+                append(BuildConfig.API_BASE_URL.trimEnd('/'))
+                if (!url.startsWith("/")) append("/")
+                append(url)
+            }
+        }
     }
 
     override fun onDestroyView() {

@@ -122,7 +122,7 @@ private fun OutfitDto.toEntity(
         id = id,
         filterKey = filterKey,
         title = title,
-        imageUrl = imageUrl,
+        imageUrl = imageUrl ?: images?.firstOrNull(),
         gender = gender?.let { runCatching { com.example.dresscode.model.Gender.valueOf(it.uppercase()) }.getOrNull() },
         style = tags?.style?.firstOrNull(),
         season = tags?.season?.firstOrNull(),

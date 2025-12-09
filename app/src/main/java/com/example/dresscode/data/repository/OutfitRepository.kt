@@ -13,6 +13,7 @@ import com.example.dresscode.data.remote.dto.OutfitDto
 import com.example.dresscode.model.Gender
 import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.model.OutfitPreview
+import com.example.dresscode.model.OutfitDetail
 import com.example.dresscode.data.local.entity.SearchHistoryEntity
 import com.example.dresscode.data.repository.OutfitFilterKey.build
 import com.example.dresscode.data.repository.paging.OutfitRemoteMediator
@@ -137,6 +138,20 @@ class OutfitRepository @Inject constructor(
         }
     }
 
+    suspend fun fetchOutfitDetail(id: String): Result<OutfitDetail> {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val dto = api.getOutfit(id)
+                OutfitDetail(
+                    id = dto.id,
+                    title = dto.title,
+                    images = dto.images?.filter { it.isNotBlank() }?.ifEmpty { null } ?: listOfNotNull(dto.imageUrl),
+                    tags = collectTags(dto.tags)
+                )
+            }
+        }
+    }
+
     private suspend fun loadOutfitSnapshot(id: String): OutfitEntity? {
         val cached = outfitDao.findByIds(listOf(id)).firstOrNull()
         if (cached != null) return cached
@@ -160,7 +175,7 @@ private fun OutfitDto.toEntity(
         id = id,
         filterKey = filterKey,
         title = title,
-        imageUrl = imageUrl,
+        imageUrl = imageUrl ?: images?.firstOrNull(),
         gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
         style = tags?.style?.firstOrNull(),
         season = tags?.season?.firstOrNull(),
