@@ -37,12 +37,15 @@ data class OutfitUiState(
 data class TryOnUiState(
     val title: String = "智能换装",
     val status: String = "暂未提交任务",
-    val hint: String = "上传人像并选择收藏穿搭",
+    val hint: String = "上传人像与穿搭",
     val selectedPhotoLabel: String? = null,
     val selectedOutfitTitle: String? = null,
     val isSubmitting: Boolean = false,
     val error: String? = null,
-    val resultPreview: String? = null
+    val resultPreview: String? = null,
+    val selectedPhotoBytes: ByteArray? = null,
+    val selectedOutfitBytes: ByteArray? = null,
+    val resultImageBase64: String? = null
 )
 
 data class TaggingUiState(

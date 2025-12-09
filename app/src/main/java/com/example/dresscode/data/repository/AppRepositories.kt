@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.dresscode.model.AuthState
-import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.model.ProfileUiState
 import com.example.dresscode.model.TryOnUiState
 import com.example.dresscode.model.WeatherUiState
@@ -19,12 +18,15 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MultipartBody
 import org.json.JSONObject
 import android.util.Patterns
 import javax.inject.Inject
 import javax.inject.Named
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.net.SocketTimeoutException
+import android.util.Base64
 
 private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
 
@@ -113,31 +115,122 @@ class WeatherRepository @Inject constructor(
     }
 }
 
-class TryOnRepository {
+data class TryOnImage(
+    val fileName: String,
+    val bytes: ByteArray,
+    val mimeType: String = "image/*"
+)
+
+class TryOnRepository @Inject constructor(
+    private val client: OkHttpClient,
+    @Named("apiBaseUrl") private val baseUrl: String
+) {
     fun snapshot(): TryOnUiState = TryOnUiState(
         status = "尚未提交换装任务",
-        hint = "上传人像并选择收藏穿搭"
+        hint = "上传人像与穿搭"
     )
 
     suspend fun submitTryOn(
-        photoLabel: String?,
-        outfit: OutfitPreview?
-    ): TryOnUiState {
-        delay(300) // placeholder for model call
-        return if (photoLabel != null && outfit != null) {
-            TryOnUiState(
-                status = "已提交换装",
-                hint = "等待后端返回效果图",
-                selectedPhotoLabel = photoLabel,
-                selectedOutfitTitle = outfit.title,
-                resultPreview = "请求已排队：${outfit.title}"
+        portrait: TryOnImage,
+        outfit: TryOnImage,
+        token: String?
+    ): TryOnUiState = withContext(Dispatchers.IO) {
+        val body = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "user_image",
+                portrait.fileName,
+                portrait.bytes.toRequestBody(portrait.mimeType.toMediaType())
             )
-        } else {
-            TryOnUiState(
-                status = "信息不完整",
-                hint = "请上传人像并选择收藏穿搭",
-                error = "缺少人像或穿搭"
+            .addFormDataPart(
+                "outfit_image",
+                outfit.fileName,
+                outfit.bytes.toRequestBody(outfit.mimeType.toMediaType())
             )
+            .build()
+        val requestBuilder = Request.Builder()
+            .url("${baseUrl.trimEnd('/')}/tryon")
+            .post(body)
+        token?.takeIf { it.isNotBlank() }?.let {
+            requestBuilder.addHeader("Authorization", "Bearer $it")
+        }
+        val request = requestBuilder.build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                val payload = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    val message = parseError(payload) ?: "换装失败：HTTP ${response.code}"
+                    throw IOException(message)
+                }
+                val json = JSONObject(payload)
+                val resultBase64 = json.optString("resultImageBase64")
+                    .ifBlank { json.optString("result_image_base64") }
+                var finalBase64 = resultBase64
+                if (finalBase64.isBlank()) {
+                    val imageUrl = json.optString("imageUrl").ifBlank { null }
+                    if (imageUrl != null) {
+                        val bytes = downloadImage(imageUrl)
+                        if (bytes != null) {
+                            finalBase64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                        }
+                    }
+                }
+                if (finalBase64.isBlank()) {
+                    throw IOException("换装失败：未返回结果图")
+                }
+                return@withContext TryOnUiState(
+                    status = "换装完成",
+                    hint = "如需调整，可重新提交任务",
+                    selectedPhotoLabel = portrait.fileName,
+                    selectedOutfitTitle = outfit.fileName,
+                    resultPreview = "换装完成",
+                    selectedPhotoBytes = portrait.bytes,
+                    selectedOutfitBytes = outfit.bytes,
+                    resultImageBase64 = finalBase64
+                )
+            }
+        } catch (e: SocketTimeoutException) {
+            throw IOException("换装超时，请检查网络后重试", e)
+        } catch (e: IOException) {
+            throw e
+        } catch (e: Exception) {
+            throw IOException("换装失败：${e.message ?: "未知错误"}", e)
+        }
+    }
+
+    suspend fun downloadImage(url: String): ByteArray? = withContext(Dispatchers.IO) {
+        val resolvedUrl = if (url.startsWith("http")) url else buildString {
+            append(baseUrl.trimEnd('/'))
+            if (!url.startsWith("/")) append("/")
+            append(url)
+        }
+        val request = Request.Builder().url(resolvedUrl).get().build()
+        return@withContext try {
+            client.newCall(request).execute().use { resp ->
+                if (!resp.isSuccessful) {
+                    null
+                } else {
+                    resp.body?.bytes()
+                }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun parseError(body: String): String? {
+        return try {
+            val json = JSONObject(body)
+            val detail = json.opt("detail")
+            when (detail) {
+                is JSONObject -> detail.optString("message").ifBlank { detail.optString("code") }
+                is String -> detail
+                else -> null
+            }?.takeIf { it.isNotBlank() }
+                ?: json.optString("message").takeIf { it.isNotBlank() }
+        } catch (_: Exception) {
+            null
         }
     }
 }

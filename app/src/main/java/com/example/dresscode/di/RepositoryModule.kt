@@ -19,6 +19,7 @@ import javax.inject.Singleton
 import javax.inject.Named
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import com.squareup.moshi.Moshi
@@ -56,7 +57,10 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTryOnRepository(): TryOnRepository = TryOnRepository()
+    fun provideTryOnRepository(
+        client: OkHttpClient,
+        @Named("apiBaseUrl") baseUrl: String
+    ): TryOnRepository = TryOnRepository(client, baseUrl)
 
     @Provides
     @Singleton
@@ -66,6 +70,10 @@ object RepositoryModule {
         }
         return OkHttpClient.Builder()
             .addInterceptor(logging)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(120, TimeUnit.SECONDS)
+            .callTimeout(180, TimeUnit.SECONDS)
             .build()
     }
 
