@@ -11,15 +11,17 @@ import com.example.dresscode.R
 import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.ItemOutfitCardBinding
 import com.example.dresscode.model.OutfitPreview
+import android.view.View
 
 class OutfitCardAdapter(
     private val onItemClick: (OutfitPreview) -> Unit = {},
-    private val onFavoriteClick: (OutfitPreview) -> Unit = {}
+    private val onFavoriteClick: (OutfitPreview) -> Unit = {},
+    private val onDeleteClick: (OutfitPreview) -> Unit = {}
 ) : PagingDataAdapter<OutfitPreview, OutfitCardAdapter.ViewHolder>(Diff) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemOutfitCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding, onItemClick, onFavoriteClick)
+        return ViewHolder(binding, onItemClick, onFavoriteClick, onDeleteClick)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -29,7 +31,8 @@ class OutfitCardAdapter(
     class ViewHolder(
         private val binding: ItemOutfitCardBinding,
         private val onItemClick: (OutfitPreview) -> Unit,
-        private val onFavoriteClick: (OutfitPreview) -> Unit
+        private val onFavoriteClick: (OutfitPreview) -> Unit,
+        private val onDeleteClick: (OutfitPreview) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: OutfitPreview) {
@@ -50,6 +53,10 @@ class OutfitCardAdapter(
             binding.outfitImage.load(resolvedUrl) {
                 crossfade(true)
                 placeholder(R.color.md_theme_light_surfaceVariant)
+            }
+            binding.btnDelete.apply {
+                visibility = if (item.isUserUpload) View.VISIBLE else View.GONE
+                setOnClickListener { onDeleteClick(item) }
             }
             binding.root.setOnClickListener { onItemClick(item) }
             binding.btnFavorite.setOnClickListener { onFavoriteClick(item) }

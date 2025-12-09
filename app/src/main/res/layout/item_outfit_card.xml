@@ -46,15 +46,33 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="夏季 · 通勤 · 简约" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_favorite"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="8dp"
-            android:text="@string/action_favorite"
-            android:paddingTop="4dp"
-            android:paddingBottom="8dp" />
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feed_delete_outfit"
+                android:visibility="gone"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp"
+                android:textColor="?attr/colorError" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_favorite"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_favorite"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

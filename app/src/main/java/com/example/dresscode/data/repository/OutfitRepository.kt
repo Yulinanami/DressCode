@@ -234,7 +234,8 @@ private fun OutfitDto.toEntity(
     filterKey: String,
     page: Int,
     indexInPage: Int,
-    isFavorite: Boolean
+    isFavorite: Boolean,
+    isUserUpload: Boolean = false
 ): OutfitEntity {
     return OutfitEntity(
         id = id,
@@ -248,6 +249,7 @@ private fun OutfitDto.toEntity(
         weather = tags?.weather?.firstOrNull(),
         tags = collectTags(tags),
         isFavorite = isFavorite,
+        isUserUpload = isUserUpload,
         page = page,
         indexInPage = indexInPage
     )
@@ -281,7 +283,8 @@ private fun OutfitEntity.toPreview(): OutfitPreview {
         imageUrl = imageUrl,
         tags = tags,
         gender = gender ?: Gender.UNISEX,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        isUserUpload = isUserUpload
     )
 }
 

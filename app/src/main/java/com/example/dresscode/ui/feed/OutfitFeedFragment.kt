@@ -40,7 +40,10 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
             onItemClick = { preview ->
                 viewModel.loadOutfitDetail(preview.id)
             },
-            onFavoriteClick = { preview -> viewModel.toggleFavorite(preview.id) }
+            onFavoriteClick = { preview -> viewModel.toggleFavorite(preview.id) },
+            onDeleteClick = { preview ->
+                viewModel.deleteOutfit(preview.id)
+            }
         )
     }
     private val pickUploadImage =

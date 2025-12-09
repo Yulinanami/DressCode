@@ -17,6 +17,7 @@ data class OutfitEntity(
     val weather: String? = null,
     val tags: List<String> = emptyList(),
     val isFavorite: Boolean = false,
+    val isUserUpload: Boolean = false,
     val page: Int = 0,
     val indexInPage: Int = 0,
     val updatedAt: Long = System.currentTimeMillis()

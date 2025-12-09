@@ -19,7 +19,7 @@ import com.example.dresscode.data.local.entity.SearchHistoryEntity
         FavoriteEntity::class,
         SearchHistoryEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DbConverters::class)
