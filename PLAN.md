@@ -55,16 +55,17 @@
 - 天气页：新版纵向布局，顶部城市标题；定位/选城按钮分列；卡片显示城市+温度（加粗）与摘要小字；权限检查与缺失提示。
 - 登录/注册：增加昵称输入（注册必填），昵称在“我的”页展示；注册/登录流程防抖与提示；未登录收藏会拦截并提示登录。
 - 个人中心：线性排布，显示昵称/邮箱，收藏入口在卡片内可跳转；布局美化。
-- 智能换装：保留打标签上传与登录校验；其他功能待接后端。
+- 智能换装：双图上传（人像、衣物）并预览；提交调用后端异步结果，超时配置加强；页面可滚动，结果图用 fitCenter 显示完整。
 - 完成度评估：核心界面与数据流已接通（穿搭/收藏、天气）；换装/权限流/测试仍需补充。
 
 ## 当前进度（后端）
 - 代码路径：`D:/MyProjects/fashion_tagging_project`，入口 `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`（`api_server.py` 仍可兼容）。
-- 结构：FastAPI + SQLAlchemy，模块化至 `app/`（auth/health/tagging/weather/outfits），服务层与配置分离。
+- 结构：FastAPI + SQLAlchemy，模块化至 `app/`（auth/health/tagging/weather/outfits/tryon），服务层与配置分离，支持 `.env`。
 - 鉴权：MySQL `dresscode`（root/20040129），users 表含密码哈希、token/refresh；接口 `/auth/register`（支持 display_name）`/auth/login` `/auth/refresh` `/auth/me`。
 - 穿搭/收藏：新增模型 outfits/favorites，启动自动建表与种子数据；接口 `/outfits`（分页筛选、isFavorite 支持）`/outfits/{id}`，收藏接口 `/favorites` GET/POST/DELETE（需 Bearer，401 处理），响应字段与前端契约一致。
 - 天气：`/weather/now` 接入和风天气，支持城市/经纬度，缓存与日志完备。
 - 打标签：`POST /tag-and-suggest-name`/`/tag-image` 对接本地大模型，需 GEMINI_API_KEY。
+- 换装：接入阿里云 DashScope OutfitAnyone（aitryon-plus），上传人像/衣物到 OSS，创建异步任务并轮询；结果落盘 `static/tryon_results/`，返回 base64+`imageUrl`；图片预处理控制尺寸/体积；`.env` 读取 `DASHSCOPE_API_KEY`/`TRYON_MODEL`。
 - 数据现状：users/outfits/favorites 已入库，穿搭/收藏落库并同步前端；换装等其余功能待扩展。
 
 ## 下一步 TODO（前端优先）

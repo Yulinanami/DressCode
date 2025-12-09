@@ -163,6 +163,9 @@ class TryOnRepository @Inject constructor(
                     val message = parseError(payload) ?: "换装失败：HTTP ${response.code}"
                     throw IOException(message)
                 }
+                if (payload.isBlank()) {
+                    throw IOException("换装失败：服务器未返回内容，请稍后重试")
+                }
                 val json = JSONObject(payload)
                 val resultBase64 = json.optString("resultImageBase64")
                     .ifBlank { json.optString("result_image_base64") }
@@ -191,7 +194,7 @@ class TryOnRepository @Inject constructor(
                 )
             }
         } catch (e: SocketTimeoutException) {
-            throw IOException("换装超时，请检查网络后重试", e)
+            throw IOException("换装超时，请稍后重试或检查网络", e)
         } catch (e: IOException) {
             throw e
         } catch (e: Exception) {
