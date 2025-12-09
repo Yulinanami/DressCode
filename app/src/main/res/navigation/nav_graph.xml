@@ -25,7 +25,16 @@
         android:id="@+id/tryOnFragment"
         android:name="com.example.dresscode.ui.tryon.TryOnFragment"
         android:label="@string/tab_try_on"
-        tools:layout="@layout/fragment_try_on" />
+        tools:layout="@layout/fragment_try_on">
+        <argument
+            android:name="preset_outfit_title"
+            app:argType="string"
+            android:defaultValue="@null" />
+        <argument
+            android:name="preset_outfit_image"
+            app:argType="string"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"

@@ -125,6 +125,9 @@ class TryOnRepository @Inject constructor(
     private val client: OkHttpClient,
     @Named("apiBaseUrl") private val baseUrl: String
 ) {
+    @Volatile
+    private var pendingRecommendedOutfit: Pair<String, String>? = null
+
     fun snapshot(): TryOnUiState = TryOnUiState(
         status = "尚未提交换装任务",
         hint = "上传人像与穿搭"
@@ -200,6 +203,16 @@ class TryOnRepository @Inject constructor(
         } catch (e: Exception) {
             throw IOException("换装失败：${e.message ?: "未知错误"}", e)
         }
+    }
+
+    fun setPendingRecommendedOutfit(title: String, imageUrl: String) {
+        pendingRecommendedOutfit = title to imageUrl
+    }
+
+    fun consumePendingRecommendedOutfit(): Pair<String, String>? {
+        val value = pendingRecommendedOutfit
+        pendingRecommendedOutfit = null
+        return value
     }
 
     suspend fun downloadImage(url: String): ByteArray? = withContext(Dispatchers.IO) {

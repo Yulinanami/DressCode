@@ -11,17 +11,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.view.isVisible
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AlertDialog
 import com.example.dresscode.R
 import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.FragmentWeatherBinding
+import com.example.dresscode.data.repository.TryOnRepository
 import coil.load
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
@@ -29,6 +33,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
     private val viewModel: WeatherViewModel by viewModels()
+    @Inject lateinit var tryOnRepository: TryOnRepository
     private var loadingDialog: AlertDialog? = null
 
     private val permissionLauncher = registerForActivityResult(
@@ -170,8 +175,16 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         val rec = state.recommendation
         binding.recommendationContent.isVisible = rec != null && !state.isRecommending
         binding.recommendationEmpty.isVisible = rec == null && !state.isRecommending
-        rec?.let {
+        if (rec == null) {
+            binding.recommendationContent.setOnClickListener(null)
+            return
+        }
+        rec.let {
             val url = resolveUrl(it.outfit.imageUrl)
+            if (url == null) {
+                binding.recommendationContent.setOnClickListener(null)
+                return
+            }
             binding.recommendationImage.load(url) {
                 crossfade(true)
                 placeholder(R.color.md_theme_light_surfaceVariant)
@@ -181,6 +194,14 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 getString(R.string.filter_all)
             }
             binding.recommendationReason.text = it.reason
+            binding.recommendationContent.setOnClickListener { _ ->
+                tryOnRepository.setPendingRecommendedOutfit(it.outfit.title, url)
+                Snackbar.make(
+                    binding.root,
+                    getString(R.string.weather_recommend_to_tryon),
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -196,4 +217,5 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             }
         }
     }
+
 }

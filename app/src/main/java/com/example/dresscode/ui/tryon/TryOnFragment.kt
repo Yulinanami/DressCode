@@ -87,12 +87,18 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
             pickOutfitImage.launch("image/*")
         }
         binding.btnSubmitTryOn.setOnClickListener { viewModel.submitTryOn() }
+        consumePresetOutfit()
 
         viewModel.favorites.observe(viewLifecycleOwner) { list ->
             favoriteAdapter.submitList(list)
             binding.sectionFavoritesTitle.isVisible = list.isNotEmpty()
             binding.favoritesStrip.isVisible = list.isNotEmpty()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.consumePendingRecommendedOutfit()
     }
 
     override fun onDestroyView() {
@@ -122,6 +128,17 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
         }
         binding.outfitFileName.text = fileName
         viewModel.selectOutfitImage(fileName, bytes, requireContext().contentResolver.getType(uri))
+    }
+
+    private fun consumePresetOutfit() {
+        val args = arguments
+        val title = args?.getString("preset_outfit_title")
+        val imageUrl = args?.getString("preset_outfit_image")
+        if (!title.isNullOrBlank() && !imageUrl.isNullOrBlank()) {
+            viewModel.useRecommendedOutfit(title, imageUrl)
+            args.remove("preset_outfit_title")
+            args.remove("preset_outfit_image")
+        }
     }
 
     private fun resolveDisplayName(uri: Uri): String {

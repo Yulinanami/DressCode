@@ -65,6 +65,12 @@ class TryOnViewModel @Inject constructor(
         }
     }
 
+    fun consumePendingRecommendedOutfit() {
+        repository.consumePendingRecommendedOutfit()?.let { (title, imageUrl) ->
+            useRecommendedOutfit(title, imageUrl)
+        }
+    }
+
     fun refresh() {
         _uiState.value = repository.snapshot()
     }
@@ -173,26 +179,45 @@ class TryOnViewModel @Inject constructor(
                 _uiState.postValue(base.copy(error = "该收藏缺少图片，无法用于换装"))
                 return@launch
             }
-            val bytes = repository.downloadImage(url)
-            if (bytes == null) {
-                _uiState.postValue(base.copy(error = "下载收藏图片失败，请稍后重试"))
-                return@launch
-            }
-            selectedOutfitImage = TryOnImage(
-                fileName = outfit.title,
-                bytes = bytes,
-                mimeType = "image/jpeg"
-            )
-            _uiState.postValue(
-                base.copy(
-                    selectedOutfitTitle = outfit.title,
-                    selectedOutfitBytes = bytes,
-                    resultImageBase64 = null,
-                    resultPreview = null,
-                    error = null,
-                    hint = "已选择收藏穿搭，上传人像后提交"
-                )
+            applyOutfitFromUrl(
+                title = outfit.title,
+                imageUrl = url,
+                hint = "已选择收藏穿搭，上传人像后提交"
             )
         }
+    }
+
+    fun useRecommendedOutfit(title: String, imageUrl: String) {
+        viewModelScope.launch {
+            applyOutfitFromUrl(
+                title = title,
+                imageUrl = imageUrl,
+                hint = "已选择推荐穿搭，上传人像后提交"
+            )
+        }
+    }
+
+    private suspend fun applyOutfitFromUrl(title: String, imageUrl: String, hint: String) {
+        val base = _uiState.value ?: repository.snapshot()
+        val bytes = repository.downloadImage(imageUrl)
+        if (bytes == null) {
+            _uiState.postValue(base.copy(error = "下载穿搭图片失败，请稍后重试"))
+            return
+        }
+        selectedOutfitImage = TryOnImage(
+            fileName = title,
+            bytes = bytes,
+            mimeType = "image/jpeg"
+        )
+        _uiState.postValue(
+            base.copy(
+                selectedOutfitTitle = title,
+                selectedOutfitBytes = bytes,
+                resultImageBase64 = null,
+                resultPreview = null,
+                error = null,
+                hint = hint
+            )
+        )
     }
 }
