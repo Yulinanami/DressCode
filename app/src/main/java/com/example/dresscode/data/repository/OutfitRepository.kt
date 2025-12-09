@@ -192,7 +192,7 @@ private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
     return FavoriteEntity(
         outfitId = id,
         title = title,
-        imageUrl = imageUrl,
+        imageUrl = imageUrl ?: images?.firstOrNull(),
         gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
         tags = collectTags(tags)
     )

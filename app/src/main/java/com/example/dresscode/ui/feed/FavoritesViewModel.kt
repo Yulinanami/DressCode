@@ -9,6 +9,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.data.repository.UserRepository
+import com.example.dresscode.model.OutfitDetail
 import com.example.dresscode.model.OutfitPreview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -52,6 +53,9 @@ class FavoritesViewModel @Inject constructor(
     private val _toast = MutableLiveData<String?>()
     val toast: LiveData<String?> = _toast
 
+    private val _detail = MutableLiveData<OutfitDetail?>()
+    val detail: LiveData<OutfitDetail?> = _detail
+
     fun refreshFavorites() {
         viewModelScope.launch {
             val auth = userRepository.authState().first()
@@ -80,5 +84,17 @@ class FavoritesViewModel @Inject constructor(
             repository.toggleFavorite(id)
                 .onFailure { error -> _toast.postValue(error.message ?: "收藏操作失败") }
         }
+    }
+
+    fun loadOutfitDetail(id: String) {
+        viewModelScope.launch {
+            repository.fetchOutfitDetail(id)
+                .onSuccess { _detail.postValue(it) }
+                .onFailure { _toast.postValue(it.message ?: "加载详情失败") }
+        }
+    }
+
+    fun clearDetail() {
+        _detail.value = null
     }
 }
