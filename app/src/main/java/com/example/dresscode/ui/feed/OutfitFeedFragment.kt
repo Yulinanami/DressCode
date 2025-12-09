@@ -111,7 +111,10 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
             }
         }
         viewModel.uploadMessage.observe(viewLifecycleOwner) { message ->
-            message?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show() }
+            message?.let {
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
+                viewModel.clearUploadMessage()
+            }
         }
         viewModel.uploadLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressFeed.isVisible = loading

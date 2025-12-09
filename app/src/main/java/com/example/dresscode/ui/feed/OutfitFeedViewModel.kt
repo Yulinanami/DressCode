@@ -64,6 +64,10 @@ class OutfitFeedViewModel @Inject constructor(
 
     val favorites: LiveData<List<OutfitPreview>> = repository.observeFavorites().asLiveData()
 
+    fun clearUploadMessage() {
+        _uploadMessage.value = null
+    }
+
     val pagingData: Flow<PagingData<OutfitPreview>> = queryFlow
         .debounce(250)
         .combine(activeFilters) { query, filters -> query to filters }

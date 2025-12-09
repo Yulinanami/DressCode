@@ -157,7 +157,8 @@ class OutfitRepository @Inject constructor(
                     filterKey = build("", OutfitFilters()),
                     page = 0,
                     indexInPage = 0,
-                    isFavorite = false
+                    isFavorite = false,
+                    isUserUpload = dto.isUserUpload == true
                 )
                 database.withTransaction {
                     outfitDao.insertAll(listOf(entity))
@@ -225,7 +226,8 @@ class OutfitRepository @Inject constructor(
             filterKey = build("", OutfitFilters()),
             page = 0,
             indexInPage = 0,
-            isFavorite = true
+            isFavorite = true,
+            isUserUpload = remote.isUserUpload == true
         )
     }
 }
