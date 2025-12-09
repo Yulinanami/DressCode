@@ -142,10 +142,17 @@ class OutfitRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             runCatching {
                 val dto = api.getOutfit(id)
+                val cached = outfitDao.findByIds(listOf(id)).firstOrNull()
+                val fallbackImages = buildList {
+                    cached?.imageUrl?.takeIf { it.isNotBlank() }?.let { add(it) }
+                }
                 OutfitDetail(
                     id = dto.id,
                     title = dto.title,
-                    images = dto.images?.filter { it.isNotBlank() }?.ifEmpty { null } ?: listOfNotNull(dto.imageUrl),
+                    images = dto.images
+                        ?.filter { it.isNotBlank() }
+                        ?.ifEmpty { null }
+                        ?: listOfNotNull(dto.imageUrl).ifEmpty { fallbackImages },
                     tags = collectTags(dto.tags)
                 )
             }
