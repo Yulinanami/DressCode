@@ -228,4 +228,13 @@
         </LinearLayout>
     </FrameLayout>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/feed_upload"
+        app:srcCompat="@android:drawable/ic_menu_upload" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

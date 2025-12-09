@@ -26,6 +26,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import androidx.room.withTransaction
 
 class OutfitRepository @Inject constructor(
     private val api: OutfitApiService,
@@ -138,6 +142,38 @@ class OutfitRepository @Inject constructor(
         }
     }
 
+    suspend fun uploadOutfit(bytes: ByteArray, fileName: String, mimeType: String? = null): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            val auth = userRepository.authState().first()
+            val token = auth.token ?: return@withContext Result.failure(IllegalStateException("请登录后再上传穿搭"))
+            try {
+                val part = MultipartBody.Part.createFormData(
+                    name = "file",
+                    filename = fileName,
+                    body = bytes.toRequestBody((mimeType ?: "image/jpeg").toMediaTypeOrNull())
+                )
+                val dto = api.uploadOutfit(part, "Bearer $token")
+                val entity = dto.toEntity(
+                    filterKey = build("", OutfitFilters()),
+                    page = 0,
+                    indexInPage = 0,
+                    isFavorite = false
+                )
+                database.withTransaction {
+                    outfitDao.insertAll(listOf(entity))
+                    database.remoteKeyDao().clearByFilter(build("", OutfitFilters()))
+                }
+                Result.success(Unit)
+            } catch (error: Exception) {
+                if (error is HttpException && error.code() == 401) {
+                    userRepository.logout()
+                    return@withContext Result.failure(IllegalStateException("登录已过期，请重新登录后再上传"))
+                }
+                Result.failure(error)
+            }
+        }
+    }
+
     suspend fun fetchOutfitDetail(id: String): Result<OutfitDetail> {
         return withContext(Dispatchers.IO) {
             runCatching {
@@ -153,8 +189,30 @@ class OutfitRepository @Inject constructor(
                         ?.filter { it.isNotBlank() }
                         ?.ifEmpty { null }
                         ?: listOfNotNull(dto.imageUrl).ifEmpty { fallbackImages },
-                    tags = collectTags(dto.tags)
+                    tags = collectTags(dto.tags),
+                    isUserUpload = dto.isUserUpload == true
                 )
+            }
+        }
+    }
+
+    suspend fun deleteOutfit(id: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            val auth = userRepository.authState().first()
+            val token = auth.token ?: return@withContext Result.failure(IllegalStateException("请登录后再删除"))
+            try {
+                api.deleteOutfit(id, "Bearer $token")
+                database.withTransaction {
+                    outfitDao.clearByFilter(build("", OutfitFilters()))
+                    favoriteDao.delete(id)
+                }
+                Result.success(Unit)
+            } catch (error: Exception) {
+                if (error is HttpException && error.code() == 401) {
+                    userRepository.logout()
+                    return@withContext Result.failure(IllegalStateException("登录已过期，请重新登录后再删除"))
+                }
+                Result.failure(error)
             }
         }
     }
@@ -195,15 +253,15 @@ private fun OutfitDto.toEntity(
     )
 }
 
-private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
-    return FavoriteEntity(
-        outfitId = id,
-        title = title,
-        imageUrl = imageUrl ?: images?.firstOrNull(),
-        gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
-        tags = collectTags(tags)
-    )
-}
+    private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
+        return FavoriteEntity(
+            outfitId = id,
+            title = title,
+            imageUrl = imageUrl ?: images?.firstOrNull(),
+            gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
+            tags = collectTags(tags)
+        )
+    }
 
 private fun collectTags(tags: com.example.dresscode.data.remote.dto.OutfitTagsDto?): List<String> {
     if (tags == null) return emptyList()

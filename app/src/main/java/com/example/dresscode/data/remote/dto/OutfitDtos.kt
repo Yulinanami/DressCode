@@ -7,7 +7,8 @@ data class OutfitDto(
     val images: List<String>? = null,
     val gender: String? = null,
     val tags: OutfitTagsDto? = null,
-    val isFavorite: Boolean? = null
+    val isFavorite: Boolean? = null,
+    val isUserUpload: Boolean? = null
 )
 
 data class OutfitTagsDto(

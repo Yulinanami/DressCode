@@ -3,10 +3,13 @@ package com.example.dresscode.data.remote
 import com.example.dresscode.data.remote.dto.OutfitDto
 import com.example.dresscode.data.remote.dto.PagedResponseDto
 import com.example.dresscode.data.remote.dto.ToggleFavoriteResponse
+import okhttp3.MultipartBody
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -43,6 +46,19 @@ interface OutfitApiService {
 
     @DELETE("favorites/{id}")
     suspend fun removeFavorite(
+        @Path("id") id: String,
+        @Header("Authorization") token: String?
+    ): ToggleFavoriteResponse
+
+    @Multipart
+    @POST("outfits/upload")
+    suspend fun uploadOutfit(
+        @Part file: MultipartBody.Part,
+        @Header("Authorization") token: String?
+    ): OutfitDto
+
+    @DELETE("outfits/{id}")
+    suspend fun deleteOutfit(
         @Path("id") id: String,
         @Header("Authorization") token: String?
     ): ToggleFavoriteResponse

@@ -69,12 +69,14 @@ data class OutfitPreview(
     val imageUrl: String? = null,
     val tags: List<String>,
     val gender: Gender = Gender.UNISEX,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isUserUpload: Boolean = false
 )
 
 data class OutfitDetail(
     val id: String,
     val title: String,
     val images: List<String> = emptyList(),
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val isUserUpload: Boolean = false
 )

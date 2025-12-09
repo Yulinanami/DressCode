@@ -25,6 +25,9 @@ import android.view.ViewGroup
 import coil.load
 import com.example.dresscode.databinding.DialogOutfitDetailBinding
 import com.example.dresscode.BuildConfig
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
+import java.io.IOException
 
 @AndroidEntryPoint
 class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
@@ -40,6 +43,10 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
             onFavoriteClick = { preview -> viewModel.toggleFavorite(preview.id) }
         )
     }
+    private val pickUploadImage =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) handleUploadImage(uri)
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -64,6 +71,9 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
         binding.btnRetry.setOnClickListener { adapter.retry() }
         binding.swipeRefresh.setOnRefreshListener { adapter.refresh() }
         binding.btnClearFilters.setOnClickListener { viewModel.clearFilters() }
+        binding.fabUpload.setOnClickListener {
+            pickUploadImage.launch("image/*")
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.pagingData.collectLatest { pagingData ->
@@ -96,6 +106,12 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
             if (error != null) {
                 Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
             }
+        }
+        viewModel.uploadMessage.observe(viewLifecycleOwner) { message ->
+            message?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show() }
+        }
+        viewModel.uploadLoading.observe(viewLifecycleOwner) { loading ->
+            binding.progressFeed.isVisible = loading
         }
     }
 
@@ -180,6 +196,11 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
         } else {
             detail.tags.joinToString(" · ")
         }
+        dialogBinding.btnDeleteOutfit.isVisible = detail.isUserUpload
+        dialogBinding.btnDeleteOutfit.setOnClickListener {
+            viewModel.deleteOutfit(detail.id)
+            dialog.dismiss()
+        }
         dialogBinding.imageContainer.removeAllViews()
         detail.images.forEach { url ->
             val margin = (8 * resources.displayMetrics.density).toInt()
@@ -226,6 +247,22 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                 append(url)
             }
         }
+    }
+
+    private fun handleUploadImage(uri: Uri) {
+        val context = requireContext()
+        val fileName = uri.lastPathSegment?.substringAfterLast("/") ?: "upload_${System.currentTimeMillis()}.jpg"
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+        val bytes = try {
+            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        } catch (_: IOException) {
+            null
+        }
+        if (bytes == null) {
+            Snackbar.make(binding.root, R.string.tagging_read_error, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        viewModel.uploadOutfit(bytes, fileName, mimeType)
     }
 
     override fun onDestroyView() {

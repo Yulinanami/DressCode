@@ -71,6 +71,8 @@ class OutfitRemoteMediator(
                         indexInPage = index,
                         isFavorite = favorites.contains(dto.id)
                             || (dto.isFavorite == true)
+                        ,
+                        isUserUpload = dto.isUserUpload == true
                     )
                 }
                 val keys = entities.map { entity ->
@@ -116,7 +118,8 @@ private fun OutfitDto.toEntity(
     filterKey: String,
     page: Int,
     indexInPage: Int,
-    isFavorite: Boolean
+        isFavorite: Boolean,
+        isUserUpload: Boolean
 ): OutfitEntity {
     return OutfitEntity(
         id = id,

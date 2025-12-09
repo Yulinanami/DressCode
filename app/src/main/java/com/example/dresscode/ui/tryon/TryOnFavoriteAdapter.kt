@@ -7,7 +7,6 @@ import coil.load
 import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.ItemTryOnFavoriteBinding
 import com.example.dresscode.ui.tryon.TryOnFavoriteItem
-import androidx.core.view.isVisible
 
 class TryOnFavoriteAdapter(
     private val onClick: (TryOnFavoriteItem) -> Unit = {}

@@ -57,6 +57,10 @@ class OutfitFeedViewModel @Inject constructor(
     val selectedDetail: LiveData<OutfitDetail?> = _selectedDetail
     private val _detailError = MutableLiveData<String?>()
     val detailError: LiveData<String?> = _detailError
+    private val _uploadMessage = MutableLiveData<String?>()
+    val uploadMessage: LiveData<String?> = _uploadMessage
+    private val _uploadLoading = MutableLiveData(false)
+    val uploadLoading: LiveData<Boolean> = _uploadLoading
 
     val favorites: LiveData<List<OutfitPreview>> = repository.observeFavorites().asLiveData()
 
@@ -146,6 +150,21 @@ class OutfitFeedViewModel @Inject constructor(
         }
     }
 
+    fun uploadOutfit(bytes: ByteArray, fileName: String, mimeType: String?) {
+        viewModelScope.launch {
+            _uploadLoading.postValue(true)
+            repository.uploadOutfit(bytes, fileName, mimeType)
+                .onSuccess {
+                    _uploadMessage.postValue("上传成功，已加入穿搭列表")
+                    queryFlow.value = queryFlow.value
+                }
+                .onFailure { error ->
+                    _uploadMessage.postValue(error.message ?: "上传失败，请稍后重试")
+                }
+            _uploadLoading.postValue(false)
+        }
+    }
+
     fun loadOutfitDetail(id: String) {
         viewModelScope.launch {
             repository.fetchOutfitDetail(id)
@@ -159,6 +178,20 @@ class OutfitFeedViewModel @Inject constructor(
     fun clearSelectedDetail() {
         _selectedDetail.value = null
         _detailError.value = null
+    }
+
+    fun deleteOutfit(id: String) {
+        viewModelScope.launch {
+            repository.deleteOutfit(id)
+                .onSuccess {
+                    _uploadMessage.postValue("已删除该穿搭")
+                    _selectedDetail.postValue(null)
+                    queryFlow.value = queryFlow.value
+                }
+                .onFailure { error ->
+                    _detailError.postValue(error.message ?: "删除失败")
+                }
+        }
     }
 
     private fun buildFilterLabel(filters: OutfitFilters): String {
