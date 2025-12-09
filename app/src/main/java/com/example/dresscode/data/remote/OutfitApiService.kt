@@ -2,12 +2,15 @@ package com.example.dresscode.data.remote
 
 import com.example.dresscode.data.remote.dto.OutfitDto
 import com.example.dresscode.data.remote.dto.PagedResponseDto
+import com.example.dresscode.data.remote.dto.OutfitRecommendationRequest
+import com.example.dresscode.data.remote.dto.OutfitRecommendationResponse
 import com.example.dresscode.data.remote.dto.ToggleFavoriteResponse
 import okhttp3.MultipartBody
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Body
 import retrofit2.http.Multipart
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -62,4 +65,10 @@ interface OutfitApiService {
         @Path("id") id: String,
         @Header("Authorization") token: String?
     ): ToggleFavoriteResponse
+
+    @POST("outfits/recommend")
+    suspend fun recommendOutfit(
+        @Body request: OutfitRecommendationRequest,
+        @Header("Authorization") token: String? = null
+    ): OutfitRecommendationResponse
 }

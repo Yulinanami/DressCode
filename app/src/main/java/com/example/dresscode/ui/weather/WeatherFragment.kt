@@ -10,6 +10,7 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -17,7 +18,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AlertDialog
 import com.example.dresscode.R
+import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.FragmentWeatherBinding
+import coil.load
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -52,6 +55,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 state.temperature
             )
             binding.weatherDetails.text = state.summary
+            renderRecommendation(state)
             if (state.isLoading) showLoadingDialog() else hideLoadingDialog()
             if (state.error != null) {
                 Snackbar.make(binding.root, state.error, Snackbar.LENGTH_SHORT).show()
@@ -64,6 +68,9 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         binding.btnSelectCity.setOnClickListener {
             findNavController().navigate(R.id.action_weather_to_city_select)
+        }
+        binding.btnFetchRecommendation.setOnClickListener {
+            viewModel.requestRecommendation()
         }
 
         if (viewModel.shouldAutoRefresh()) {
@@ -154,5 +161,39 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private fun hideLoadingDialog() {
         loadingDialog?.dismiss()
         loadingDialog = null
+    }
+
+    private fun renderRecommendation(state: com.example.dresscode.model.WeatherUiState) {
+        binding.cardRecommendation.isVisible = true
+        binding.btnFetchRecommendation.isEnabled = !state.isRecommending
+        binding.recommendationLoading.isVisible = state.isRecommending
+        val rec = state.recommendation
+        binding.recommendationContent.isVisible = rec != null && !state.isRecommending
+        binding.recommendationEmpty.isVisible = rec == null && !state.isRecommending
+        rec?.let {
+            val url = resolveUrl(it.outfit.imageUrl)
+            binding.recommendationImage.load(url) {
+                crossfade(true)
+                placeholder(R.color.md_theme_light_surfaceVariant)
+            }
+            binding.recommendationTitle.text = it.outfit.title
+            binding.recommendationTags.text = it.outfit.tags.joinToString(" · ").ifBlank {
+                getString(R.string.filter_all)
+            }
+            binding.recommendationReason.text = it.reason
+        }
+    }
+
+    private fun resolveUrl(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        return if (url.startsWith("http")) {
+            url
+        } else {
+            buildString {
+                append(BuildConfig.API_BASE_URL.trimEnd('/'))
+                if (!url.startsWith("/")) append("/")
+                append(url)
+            }
+        }
     }
 }

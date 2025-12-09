@@ -29,3 +29,14 @@ data class PagedResponseDto<T>(
 data class ToggleFavoriteResponse(
     val isFavorite: Boolean? = null
 )
+
+data class OutfitRecommendationRequest(
+    val city: String? = null,
+    val temperature: Double? = null,
+    val weatherText: String? = null
+)
+
+data class OutfitRecommendationResponse(
+    val outfit: OutfitDto,
+    val reason: String
+)

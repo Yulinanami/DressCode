@@ -8,7 +8,14 @@ data class WeatherUiState(
     val summary: String = "等待天气数据",
     val temperature: String = "--°",
     val isLoading: Boolean = false,
+    val isRecommending: Boolean = false,
+    val recommendation: WeatherRecommendation? = null,
     val error: String? = null
+)
+
+data class WeatherRecommendation(
+    val outfit: OutfitPreview,
+    val reason: String
 )
 
 data class AuthState(

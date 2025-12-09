@@ -5,31 +5,32 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import com.example.dresscode.data.local.db.DressCodeDatabase
 import com.example.dresscode.data.local.entity.FavoriteEntity
 import com.example.dresscode.data.local.entity.OutfitEntity
+import com.example.dresscode.data.local.entity.SearchHistoryEntity
 import com.example.dresscode.data.remote.OutfitApiService
 import com.example.dresscode.data.remote.dto.OutfitDto
-import com.example.dresscode.model.Gender
-import com.example.dresscode.model.OutfitFilters
-import com.example.dresscode.model.OutfitPreview
-import com.example.dresscode.model.OutfitDetail
-import com.example.dresscode.data.local.entity.SearchHistoryEntity
+import com.example.dresscode.data.remote.dto.OutfitRecommendationRequest
 import com.example.dresscode.data.repository.OutfitFilterKey.build
 import com.example.dresscode.data.repository.paging.OutfitRemoteMediator
-import javax.inject.Inject
+import com.example.dresscode.model.Gender
+import com.example.dresscode.model.OutfitDetail
+import com.example.dresscode.model.OutfitFilters
+import com.example.dresscode.model.OutfitPreview
+import com.example.dresscode.model.WeatherRecommendation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import retrofit2.HttpException
-import java.io.IOException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import androidx.room.withTransaction
+import retrofit2.HttpException
+import javax.inject.Inject
 
 class OutfitRepository @Inject constructor(
     private val api: OutfitApiService,
@@ -175,6 +176,31 @@ class OutfitRepository @Inject constructor(
         }
     }
 
+    suspend fun recommendOutfit(
+        city: String?,
+        temperature: Double?,
+        weatherText: String?
+    ): Result<WeatherRecommendation> {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val auth = userRepository.authState().first()
+                val bearer = auth.token?.let { "Bearer $it" }
+                val response = api.recommendOutfit(
+                    request = OutfitRecommendationRequest(
+                        city = city,
+                        temperature = temperature,
+                        weatherText = weatherText
+                    ),
+                    token = bearer
+                )
+                WeatherRecommendation(
+                    outfit = response.outfit.toPreviewForRecommendation(),
+                    reason = response.reason
+                )
+            }
+        }
+    }
+
     suspend fun fetchOutfitDetail(id: String): Result<OutfitDetail> {
         return withContext(Dispatchers.IO) {
             runCatching {
@@ -254,6 +280,18 @@ private fun OutfitDto.toEntity(
         isUserUpload = isUserUpload,
         page = page,
         indexInPage = indexInPage
+    )
+}
+
+private fun OutfitDto.toPreviewForRecommendation(): OutfitPreview {
+    return OutfitPreview(
+        id = id,
+        title = title,
+        imageUrl = imageUrl ?: images?.firstOrNull(),
+        tags = collectTags(tags),
+        gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() } ?: Gender.UNISEX,
+        isFavorite = isFavorite ?: false,
+        isUserUpload = isUserUpload == true
     )
 }
 
