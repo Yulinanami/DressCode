@@ -70,9 +70,6 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                 false
             }
         }
-        binding.searchFilter.setOnClickListener {
-            Snackbar.make(binding.root, R.string.filter_placeholder, Snackbar.LENGTH_SHORT).show()
-        }
         binding.btnRetry.setOnClickListener { adapter.retry() }
         binding.swipeRefresh.setOnRefreshListener { adapter.refresh() }
         binding.btnClearFilters.setOnClickListener { viewModel.clearFilters() }
