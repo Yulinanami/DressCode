@@ -27,8 +27,8 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
     private val binding get() = _binding!!
     private val viewModel: TryOnViewModel by viewModels()
     private val favoriteAdapter by lazy {
-        TryOnFavoriteAdapter { preview ->
-            viewModel.useFavoriteOutfit(preview)
+        TryOnFavoriteAdapter { item ->
+            viewModel.useFavoriteOutfit(item)
         }
     }
 

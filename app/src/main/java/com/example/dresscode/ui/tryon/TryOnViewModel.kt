@@ -8,8 +8,8 @@ import com.example.dresscode.data.repository.TryOnImage
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.TryOnUiState
-import com.example.dresscode.model.OutfitPreview
 import com.example.dresscode.data.repository.OutfitRepository
+import com.example.dresscode.ui.tryon.TryOnFavoriteItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
@@ -24,8 +24,8 @@ class TryOnViewModel @Inject constructor(
 
     private val _uiState = MutableLiveData(repository.snapshot())
     val uiState: LiveData<TryOnUiState> = _uiState
-    private val _favorites = MutableLiveData<List<OutfitPreview>>(emptyList())
-    val favorites: LiveData<List<OutfitPreview>> = _favorites
+    private val _favorites = MutableLiveData<List<TryOnFavoriteItem>>(emptyList())
+    val favorites: LiveData<List<TryOnFavoriteItem>> = _favorites
 
     private var selectedPhotoLabel: String? = null
     private var selectedPortraitImage: TryOnImage? = null
@@ -42,7 +42,25 @@ class TryOnViewModel @Inject constructor(
         }
         viewModelScope.launch {
             outfitRepository.observeFavorites().collectLatest { list ->
-                _favorites.postValue(list)
+                val enriched = list.flatMap { preview ->
+                    val images = runCatching {
+                        outfitRepository.fetchOutfitDetail(preview.id).getOrNull()?.images
+                    }.getOrNull()
+                    val finalImages = images
+                        ?.filter { it.isNotBlank() }
+                        ?.ifEmpty { null }
+                        ?: preview.imageUrl?.let { listOf(it) }
+                        ?: emptyList()
+                    finalImages.map { url ->
+                        TryOnFavoriteItem(
+                            outfitId = preview.id,
+                            title = preview.title,
+                            tags = preview.tags,
+                            imageUrl = url
+                        )
+                    }
+                }
+                _favorites.postValue(enriched)
             }
         }
     }
@@ -147,7 +165,7 @@ class TryOnViewModel @Inject constructor(
         )
     }
 
-    fun useFavoriteOutfit(outfit: OutfitPreview) {
+    fun useFavoriteOutfit(outfit: TryOnFavoriteItem) {
         viewModelScope.launch {
             val base = _uiState.value ?: repository.snapshot()
             val url = outfit.imageUrl

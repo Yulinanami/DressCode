@@ -6,15 +6,16 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.ItemTryOnFavoriteBinding
-import com.example.dresscode.model.OutfitPreview
+import com.example.dresscode.ui.tryon.TryOnFavoriteItem
+import androidx.core.view.isVisible
 
 class TryOnFavoriteAdapter(
-    private val onClick: (OutfitPreview) -> Unit = {}
+    private val onClick: (TryOnFavoriteItem) -> Unit = {}
 ) : RecyclerView.Adapter<TryOnFavoriteAdapter.ViewHolder>() {
 
-    private val items = mutableListOf<OutfitPreview>()
+    private val items = mutableListOf<TryOnFavoriteItem>()
 
-    fun submitList(data: List<OutfitPreview>) {
+    fun submitList(data: List<TryOnFavoriteItem>) {
         items.clear()
         items.addAll(data)
         notifyDataSetChanged()
@@ -37,15 +38,13 @@ class TryOnFavoriteAdapter(
 
     class ViewHolder(
         private val binding: ItemTryOnFavoriteBinding,
-        private val onClick: (OutfitPreview) -> Unit
+        private val onClick: (TryOnFavoriteItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: OutfitPreview) {
+        fun bind(item: TryOnFavoriteItem) {
             binding.title.text = item.title
             binding.tags.text = item.tags.joinToString(" · ")
             val resolvedUrl = resolveUrl(item.imageUrl)
-            binding.cover.load(resolvedUrl) {
-                crossfade(true)
-            }
+            binding.cover.load(resolvedUrl) { crossfade(true) }
             binding.root.setOnClickListener { onClick(item) }
         }
 
