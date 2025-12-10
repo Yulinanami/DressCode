@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.data.repository.WeatherRepository
-import com.example.dresscode.model.WeatherRecommendation
 import com.example.dresscode.model.WeatherUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,6 +47,16 @@ class WeatherViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    fun markLocating() {
+        val current = _uiState.value ?: repository.snapshot()
+        _uiState.value = current.copy(isLoading = true, error = null, recommendation = null, isRecommending = false)
+    }
+
+    fun onLocationFailed(message: String) {
+        val current = _uiState.value ?: repository.snapshot()
+        _uiState.value = current.copy(isLoading = false, error = message)
     }
 
     fun requestRecommendation() {

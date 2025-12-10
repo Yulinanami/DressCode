@@ -4,26 +4,27 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.view.isVisible
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import androidx.appcompat.app.AlertDialog
-import com.example.dresscode.R
 import com.example.dresscode.BuildConfig
-import com.example.dresscode.databinding.FragmentWeatherBinding
+import com.example.dresscode.R
 import com.example.dresscode.data.repository.TryOnRepository
+import com.example.dresscode.databinding.FragmentWeatherBinding
 import coil.load
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -35,6 +36,19 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private val viewModel: WeatherViewModel by viewModels()
     @Inject lateinit var tryOnRepository: TryOnRepository
     private var loadingDialog: AlertDialog? = null
+    private var locationManager: LocationManager? = null
+    private var hasDeliveredLocation = false
+    private val handler = Handler(Looper.getMainLooper())
+    private val stopRunnable = Runnable { deliverLastKnownOrFail() }
+    private val locationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            if (!hasDeliveredLocation) {
+                hasDeliveredLocation = true
+                stopLocationUpdates()
+                viewModel.refresh(lat = location.latitude, lon = location.longitude)
+            }
+        }
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -96,13 +110,29 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun fetchLocationWeather() {
-        val location = latestLocation()
-        if (location != null) {
-            viewModel.refresh(lat = location.latitude, lon = location.longitude)
-        } else {
+        if (!hasLocationPermission()) return
+        viewModel.markLocating()
+        val manager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .filter { manager.isProviderEnabled(it) }
+        if (providers.isEmpty()) {
             Snackbar.make(binding.root, R.string.location_unavailable, Snackbar.LENGTH_SHORT).show()
+            viewModel.onLocationFailed(getString(R.string.location_unavailable))
+            return
         }
+        stopLocationUpdates()
+        locationManager = manager
+        hasDeliveredLocation = false
+        // 主动请求位置，首个回调即停止
+        providers.forEach { provider ->
+            runCatching {
+                manager.requestLocationUpdates(provider, 0L, 0f, locationListener, Looper.getMainLooper())
+            }
+        }
+        // 超时后尝试 lastKnown，再提示
+        handler.postDelayed(stopRunnable, 8000L)
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -119,19 +149,23 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     }
 
     @SuppressLint("MissingPermission")
-    private fun latestLocation(): Location? {
-        if (!hasLocationPermission()) return null
-        val context = requireContext()
-        val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val providers = listOf(
-            LocationManager.NETWORK_PROVIDER,
-            LocationManager.GPS_PROVIDER
-        ).filter { manager.isProviderEnabled(it) }
-        providers.forEach { provider ->
-            val loc = runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
-            if (loc != null) return loc
+    private fun deliverLastKnownOrFail() {
+        val manager = locationManager ?: return
+        if (hasDeliveredLocation) return
+        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .filter { manager.isProviderEnabled(it) }
+        val last = providers.firstNotNullOfOrNull { provider ->
+            runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
         }
-        return null
+        if (last != null) {
+            hasDeliveredLocation = true
+            stopLocationUpdates()
+            viewModel.refresh(lat = last.latitude, lon = last.longitude)
+        } else {
+            stopLocationUpdates()
+            Snackbar.make(binding.root, R.string.location_unavailable, Snackbar.LENGTH_SHORT).show()
+            viewModel.onLocationFailed(getString(R.string.location_unavailable))
+        }
     }
 
     private fun observeCitySelection() {
@@ -146,6 +180,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     override fun onDestroyView() {
         super.onDestroyView()
         hideLoadingDialog()
+        stopLocationUpdates()
         _binding = null
     }
 
@@ -166,6 +201,12 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
     private fun hideLoadingDialog() {
         loadingDialog?.dismiss()
         loadingDialog = null
+    }
+
+    private fun stopLocationUpdates() {
+        handler.removeCallbacks(stopRunnable)
+        locationManager?.removeUpdates(locationListener)
+        locationManager = null
     }
 
     private fun renderRecommendation(state: com.example.dresscode.model.WeatherUiState) {
