@@ -166,7 +166,8 @@ class OutfitRepository @Inject constructor(
                     page = 0,
                     indexInPage = 0,
                     isFavorite = false,
-                    isUserUpload = dto.isUserUpload == true
+                    // 上传接口必然是用户上传，即便后端未返回字段也强制标记
+                    isUserUpload = true
                 )
                 database.withTransaction {
                     outfitDao.insertAll(listOf(entity))
@@ -232,7 +233,7 @@ class OutfitRepository @Inject constructor(
                     title = dto.title,
                     images = safeImages,
                     tags = collectTags(dto.tags),
-                    isUserUpload = dto.isUserUpload == true
+                    isUserUpload = dto.isUserUploadFlag()
                 )
             }
         }
@@ -246,7 +247,8 @@ class OutfitRepository @Inject constructor(
             try {
                 api.deleteOutfit(id, email, password)
                 database.withTransaction {
-                    outfitDao.clearByFilter(build("", OutfitFilters()))
+                    outfitDao.deleteById(id)
+                    database.remoteKeyDao().deleteById(id)
                     favoriteDao.delete(id)
                 }
                 Result.success(Unit)
@@ -269,7 +271,7 @@ class OutfitRepository @Inject constructor(
             page = 0,
             indexInPage = 0,
             isFavorite = true,
-            isUserUpload = remote.isUserUpload == true
+            isUserUpload = remote.isUserUploadFlag()
         )
     }
 }
@@ -309,20 +311,20 @@ private fun OutfitDto.toPreviewForRecommendation(): OutfitPreview {
         tags = collectTags(tags),
         gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() } ?: Gender.UNISEX,
         isFavorite = isFavorite ?: false,
-        isUserUpload = isUserUpload == true
+        isUserUpload = isUserUploadFlag()
     )
 }
 
-    private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
-        val cover = imageUrl ?: imageUrlLegacy ?: images?.firstOrNull()
-        return FavoriteEntity(
-            outfitId = id,
-            title = title,
-            imageUrl = cover,
-            gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
-            tags = collectTags(tags)
-        )
-    }
+private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
+    val cover = imageUrl ?: imageUrlLegacy ?: images?.firstOrNull()
+    return FavoriteEntity(
+        outfitId = id,
+        title = title,
+        imageUrl = cover,
+        gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
+        tags = collectTags(tags)
+    )
+}
 
 private fun collectTags(tags: com.example.dresscode.data.remote.dto.OutfitTagsDto?): List<String> {
     if (tags == null) return emptyList()
@@ -345,6 +347,16 @@ private fun OutfitEntity.toPreview(): OutfitPreview {
         isFavorite = isFavorite,
         isUserUpload = isUserUpload
     )
+}
+
+private fun OutfitDto.isUserUploadFlag(): Boolean {
+    if (isUserUpload == true) return true
+    val candidates = buildList {
+        imageUrl?.let { add(it) }
+        imageUrlLegacy?.let { add(it) }
+        images?.let { addAll(it) }
+    }
+    return candidates.any { it.contains("/user_uploads/", ignoreCase = true) }
 }
 
 private fun FavoriteEntity.toPreview(): OutfitPreview {

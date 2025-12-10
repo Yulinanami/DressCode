@@ -17,4 +17,7 @@ interface OutfitRemoteKeyDao {
 
     @Query("DELETE FROM outfit_remote_keys WHERE filterKey = :filterKey")
     suspend fun clearByFilter(filterKey: String)
+
+    @Query("DELETE FROM outfit_remote_keys WHERE id = :id")
+    suspend fun deleteById(id: String)
 }

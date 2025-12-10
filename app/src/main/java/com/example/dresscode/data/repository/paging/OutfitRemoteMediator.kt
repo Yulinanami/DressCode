@@ -65,6 +65,7 @@ class OutfitRemoteMediator(
                 val prevKey = if (page == 1) null else page - 1
                 val nextKey = if (endOfPaginationReached) null else page + 1
                 val entities = items.mapIndexed { index, dto ->
+                    val userUploadFlag = dto.isUserUploadFlag()
                     dto.toEntity(
                         filterKey = filterKey,
                         page = page,
@@ -72,7 +73,7 @@ class OutfitRemoteMediator(
                         isFavorite = favorites.contains(dto.id)
                             || (dto.isFavorite == true)
                         ,
-                        isUserUpload = dto.isUserUpload == true
+                        isUserUpload = userUploadFlag
                     )
                 }
                 val keys = entities.map { entity ->
@@ -137,6 +138,16 @@ private fun OutfitDto.toEntity(
         page = page,
         indexInPage = indexInPage
     )
+}
+
+private fun OutfitDto.isUserUploadFlag(): Boolean {
+    if (isUserUpload == true) return true
+    val urlCandidates = buildList {
+        imageUrl?.let { add(it) }
+        imageUrlLegacy?.let { add(it) }
+        images?.let { addAll(it) }
+    }
+    return urlCandidates.any { it.contains("/user_uploads/", ignoreCase = true) }
 }
 
 private fun collectTags(tags: com.example.dresscode.data.remote.dto.OutfitTagsDto?): List<String> {

@@ -19,6 +19,9 @@ interface OutfitDao {
     @Query("DELETE FROM outfits WHERE filterKey = :filterKey")
     suspend fun clearByFilter(filterKey: String)
 
+    @Query("DELETE FROM outfits WHERE id = :id")
+    suspend fun deleteById(id: String)
+
     @Query("UPDATE outfits SET isFavorite = :isFavorite WHERE id = :id")
     suspend fun updateFavorite(id: String, isFavorite: Boolean)
 

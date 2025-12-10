@@ -10,6 +10,7 @@ data class OutfitDto(
     val gender: String? = null,
     val tags: OutfitTagsDto? = null,
     val isFavorite: Boolean? = null,
+    @com.squareup.moshi.Json(name = "is_user_upload")
     val isUserUpload: Boolean? = null
 )
 
