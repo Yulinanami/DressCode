@@ -19,6 +19,7 @@ class CitySelectFragment : Fragment(R.layout.fragment_city_select) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentCitySelectBinding.bind(view)
+        binding.toolbarCitySelect.setNavigationOnClickListener { findNavController().navigateUp() }
         binding.cityList.layoutManager = LinearLayoutManager(requireContext())
         binding.cityList.adapter = SimpleCityAdapter(
             listOf("上海", "北京", "深圳", "杭州", "广州", "成都", "南京", "武汉")

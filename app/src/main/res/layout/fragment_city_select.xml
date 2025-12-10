@@ -7,16 +7,17 @@
     android:padding="16dp"
     tools:context=".ui.weather.CitySelectFragment">
 
-    <TextView
-        android:id="@+id/city_title"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_city_select"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/city_select_title"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textStyle="bold"
+        android:background="?attr/colorSurface"
+        android:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="@string/city_select_title" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/field_city_input"
@@ -24,11 +25,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/city_input_hint"
-        app:layout_constraintTop_toBottomOf="@id/city_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_add_city"
         android:layout_marginTop="12dp"
-        android:layout_marginEnd="8dp">
+        android:layout_marginEnd="8dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_city_select"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_add_city">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_city"
