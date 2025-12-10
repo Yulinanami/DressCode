@@ -136,7 +136,6 @@ class TryOnRepository @Inject constructor(
     suspend fun submitTryOn(
         portrait: TryOnImage,
         outfit: TryOnImage,
-        token: String?,
         model: String? = null
     ): TryOnUiState = withContext(Dispatchers.IO) {
         val body = MultipartBody.Builder()
@@ -155,13 +154,10 @@ class TryOnRepository @Inject constructor(
                 model?.let { addFormDataPart("model", it) }
             }
             .build()
-        val requestBuilder = Request.Builder()
+        val request = Request.Builder()
             .url("${baseUrl.trimEnd('/')}/tryon")
             .post(body)
-        token?.takeIf { it.isNotBlank() }?.let {
-            requestBuilder.addHeader("Authorization", "Bearer $it")
-        }
-        val request = requestBuilder.build()
+            .build()
 
         try {
             client.newCall(request).execute().use { response ->
@@ -265,19 +261,17 @@ class UserRepository(
     private val emailKey = stringPreferencesKey("user_email")
     private val passwordKey = stringPreferencesKey("user_password")
     private val displayNameKey = stringPreferencesKey("display_name")
-    private val tokenKey = stringPreferencesKey("auth_token")
-    private val tokenExpiresKey = stringPreferencesKey("token_expires_at")
 
     fun authState(): Flow<AuthState> = dataStore.data.map { prefs ->
         val email = prefs[emailKey]
-        val token = prefs[tokenKey]
+        val password = prefs[passwordKey]
         val displayName = prefs[displayNameKey] ?: email?.substringBefore("@")?.takeIf { it.isNotBlank() }
-        if (email != null && !token.isNullOrBlank()) {
+        if (!email.isNullOrBlank() && !password.isNullOrBlank()) {
             AuthState(
                 isLoggedIn = true,
                 email = email,
                 displayName = displayName ?: "已登录用户",
-                token = token
+                password = password
             )
         } else {
             AuthState()
@@ -322,20 +316,13 @@ class UserRepository(
                         return@withContext AuthResult.Error(message)
                     }
                     val json = JSONObject(bodyString)
-                    val token = json.optString("token")
-                    if (token.isBlank()) {
-                        return@withContext AuthResult.Error("登录失败：服务器未返回 token")
-                    }
-                    val displayName = json.optString("display_name")
+                    val displayNameFromResponse = json.optString("display_name")
                         .ifBlank { displayNameFromEmail(trimmedEmail) }
                     val emailFromResponse = json.optString("email").ifBlank { trimmedEmail }
-                    val expiresAt = json.optString("expires_at").ifBlank { null }
                     dataStore.edit { prefs ->
                         prefs[emailKey] = emailFromResponse
-                        prefs[tokenKey] = token
-                        prefs[displayNameKey] = displayName
-                        expiresAt?.let { prefs[tokenExpiresKey] = it }
-                        prefs[passwordKey] = "" // 清空本地旧密码存储
+                        prefs[passwordKey] = password
+                        prefs[displayNameKey] = displayNameFromResponse
                     }
                     return@withContext AuthResult.Success
                 }
@@ -364,8 +351,9 @@ class UserRepository(
 
     suspend fun logout() {
         dataStore.edit { prefs ->
-            // 清空 token 视为退出
-            prefs[tokenKey] = ""
+            prefs[emailKey] = ""
+            prefs[passwordKey] = ""
+            prefs[displayNameKey] = ""
         }
     }
 

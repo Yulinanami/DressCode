@@ -80,18 +80,19 @@ class OutfitRepository @Inject constructor(
 
     suspend fun toggleFavorite(id: String): Result<Boolean> {
         val auth = userRepository.authState().first()
-        if (!auth.isLoggedIn || auth.token.isNullOrBlank()) {
+        val email = auth.email
+        val password = auth.password
+        if (!auth.isLoggedIn || email.isNullOrBlank() || password.isNullOrBlank()) {
             return Result.failure(IllegalStateException("请登录后再收藏"))
         }
-        val bearer = "Bearer ${auth.token}"
         val currentlyFavorite = favoriteDao.isFavorite(id)
         val targetFavorite = !currentlyFavorite
         return withContext(Dispatchers.IO) {
             runCatching {
                 if (targetFavorite) {
-                    api.addFavorite(id, bearer)
+                    api.addFavorite(id, email, password)
                 } else {
-                    api.removeFavorite(id, bearer)
+                    api.removeFavorite(id, email, password)
                 }
                 val entity = loadOutfitSnapshot(id)
                 if (targetFavorite) {
@@ -113,11 +114,11 @@ class OutfitRepository @Inject constructor(
 
     suspend fun refreshFavoritesFromRemote(): Result<Unit> {
         val auth = userRepository.authState().first()
-        val token = auth.token ?: return Result.failure(IllegalStateException("未登录"))
+        val email = auth.email ?: return Result.failure(IllegalStateException("未登录"))
+        val password = auth.password ?: return Result.failure(IllegalStateException("未登录"))
         return withContext(Dispatchers.IO) {
             runCatching {
-                val bearer = "Bearer $token"
-                val favorites = api.getFavorites(bearer)
+                val favorites = api.getFavorites(email, password)
                 val entities = favorites.map { dto ->
                     dto.toFavoriteEntity()
                 }
@@ -149,7 +150,8 @@ class OutfitRepository @Inject constructor(
     suspend fun uploadOutfit(bytes: ByteArray, fileName: String, mimeType: String? = null): Result<Unit> {
         return withContext(Dispatchers.IO) {
             val auth = userRepository.authState().first()
-            val token = auth.token ?: return@withContext Result.failure(IllegalStateException("请登录后再上传穿搭"))
+            val email = auth.email ?: return@withContext Result.failure(IllegalStateException("请登录后再上传穿搭"))
+            val password = auth.password ?: return@withContext Result.failure(IllegalStateException("请登录后再上传穿搭"))
             val taggingModel = settingsRepository.modelPreferences().first().taggingModel.value
             try {
                 val part = MultipartBody.Part.createFormData(
@@ -158,7 +160,7 @@ class OutfitRepository @Inject constructor(
                     body = bytes.toRequestBody((mimeType ?: "image/jpeg").toMediaTypeOrNull())
                 )
                 val modelPart = MultipartBody.Part.createFormData("model", taggingModel)
-                val dto = api.uploadOutfit(part, modelPart, "Bearer $token")
+                val dto = api.uploadOutfit(part, modelPart, email, password)
                 val entity = dto.toEntity(
                     filterKey = build("", OutfitFilters()),
                     page = 0,
@@ -189,14 +191,16 @@ class OutfitRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             runCatching {
                 val auth = userRepository.authState().first()
-                val bearer = auth.token?.let { "Bearer $it" }
+                val email = auth.email
+                val password = auth.password
                 val response = api.recommendOutfit(
                     request = OutfitRecommendationRequest(
                         city = city,
                         temperature = temperature,
                         weatherText = weatherText
                     ),
-                    token = bearer
+                    userEmail = email,
+                    userPassword = password
                 )
                 WeatherRecommendation(
                     outfit = response.outfit.toPreviewForRecommendation(),
@@ -237,9 +241,10 @@ class OutfitRepository @Inject constructor(
     suspend fun deleteOutfit(id: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             val auth = userRepository.authState().first()
-            val token = auth.token ?: return@withContext Result.failure(IllegalStateException("请登录后再删除"))
+            val email = auth.email ?: return@withContext Result.failure(IllegalStateException("请登录后再删除"))
+            val password = auth.password ?: return@withContext Result.failure(IllegalStateException("请登录后再删除"))
             try {
-                api.deleteOutfit(id, "Bearer $token")
+                api.deleteOutfit(id, email, password)
                 database.withTransaction {
                     outfitDao.clearByFilter(build("", OutfitFilters()))
                     favoriteDao.delete(id)

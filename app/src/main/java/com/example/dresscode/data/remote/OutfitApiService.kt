@@ -38,19 +38,22 @@ interface OutfitApiService {
 
     @GET("favorites")
     suspend fun getFavorites(
-        @Header("Authorization") token: String?
+        @Header("X-User-Email") userEmail: String?,
+        @Header("X-User-Password") userPassword: String?
     ): List<OutfitDto>
 
     @POST("favorites/{id}")
     suspend fun addFavorite(
         @Path("id") id: String,
-        @Header("Authorization") token: String?
+        @Header("X-User-Email") userEmail: String?,
+        @Header("X-User-Password") userPassword: String?
     ): ToggleFavoriteResponse
 
     @DELETE("favorites/{id}")
     suspend fun removeFavorite(
         @Path("id") id: String,
-        @Header("Authorization") token: String?
+        @Header("X-User-Email") userEmail: String?,
+        @Header("X-User-Password") userPassword: String?
     ): ToggleFavoriteResponse
 
     @Multipart
@@ -58,18 +61,21 @@ interface OutfitApiService {
     suspend fun uploadOutfit(
         @Part file: MultipartBody.Part,
         @Part model: MultipartBody.Part,
-        @Header("Authorization") token: String?
+        @Header("X-User-Email") userEmail: String?,
+        @Header("X-User-Password") userPassword: String?
     ): OutfitDto
 
     @DELETE("outfits/{id}")
     suspend fun deleteOutfit(
         @Path("id") id: String,
-        @Header("Authorization") token: String?
+        @Header("X-User-Email") userEmail: String?,
+        @Header("X-User-Password") userPassword: String?
     ): ToggleFavoriteResponse
 
     @POST("outfits/recommend")
     suspend fun recommendOutfit(
         @Body request: OutfitRecommendationRequest,
-        @Header("Authorization") token: String? = null
+        @Header("X-User-Email") userEmail: String? = null,
+        @Header("X-User-Password") userPassword: String? = null
     ): OutfitRecommendationResponse
 }

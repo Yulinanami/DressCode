@@ -34,14 +34,12 @@ class TryOnViewModel @Inject constructor(
     private var selectedPortraitImage: TryOnImage? = null
     private var selectedOutfitImage: TryOnImage? = null
     private var isLoggedIn = false
-    private var authToken: String? = null
     private var selectedTryOnModel: TryOnModel = TryOnModel.AITRYON_PLUS
 
     init {
         viewModelScope.launch {
             userRepository.authState().collectLatest { auth ->
                 isLoggedIn = auth.isLoggedIn
-                authToken = auth.token
             }
         }
         viewModelScope.launch {
@@ -131,7 +129,7 @@ class TryOnViewModel @Inject constructor(
         }
         _uiState.value = base.copy(isSubmitting = true, error = null)
         viewModelScope.launch {
-            runCatching { repository.submitTryOn(portrait, outfitImage, authToken, selectedTryOnModel.value) }
+            runCatching { repository.submitTryOn(portrait, outfitImage, selectedTryOnModel.value) }
                 .onSuccess { result ->
                     _uiState.postValue(
                         result.copy(
