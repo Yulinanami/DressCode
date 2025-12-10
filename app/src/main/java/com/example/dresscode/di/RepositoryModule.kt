@@ -6,7 +6,6 @@ import com.example.dresscode.data.local.db.DressCodeDatabase
 import com.example.dresscode.data.remote.OutfitApiService
 import com.example.dresscode.data.repository.OutfitRepository
 import com.example.dresscode.data.repository.SettingsRepository
-import com.example.dresscode.data.repository.TaggingRepository
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.data.repository.WeatherRepository
@@ -77,14 +76,6 @@ object RepositoryModule {
             .callTimeout(360, TimeUnit.SECONDS)
             .build()
     }
-
-    @Provides
-    @Singleton
-    fun provideTaggingRepository(
-        client: OkHttpClient,
-        settingsRepository: SettingsRepository
-    ): TaggingRepository =
-        TaggingRepository(client, BuildConfig.TAGGING_BASE_URL, settingsRepository)
 
     @Provides
     @Singleton

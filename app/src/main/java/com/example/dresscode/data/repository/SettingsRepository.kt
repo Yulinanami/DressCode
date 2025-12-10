@@ -21,17 +21,14 @@ class SettingsRepository @Inject constructor(
 ) {
 
     private val genderKey = stringPreferencesKey("default_gender")
-    private val defaultTagKey = stringPreferencesKey("default_tag")
     private val tryOnModelKey = stringPreferencesKey("try_on_model")
     private val taggingModelKey = stringPreferencesKey("tagging_model")
 
     fun defaultFilters(): Flow<OutfitFilters> {
         return context.settingsDataStore.data.map { prefs ->
             val gender = prefs[genderKey]?.let { runCatching { Gender.valueOf(it) }.getOrNull() }
-            val defaultTag = prefs[defaultTagKey]
             OutfitFilters(
-                gender = gender,
-                tags = defaultTag?.let { setOf(it) } ?: emptySet()
+                gender = gender
             )
         }
     }
@@ -51,16 +48,6 @@ class SettingsRepository @Inject constructor(
                 prefs.remove(genderKey)
             } else {
                 prefs[genderKey] = gender.name
-            }
-        }
-    }
-
-    suspend fun setDefaultTag(tag: String?) {
-        context.settingsDataStore.edit { prefs ->
-            if (tag.isNullOrBlank()) {
-                prefs.remove(defaultTagKey)
-            } else {
-                prefs[defaultTagKey] = tag
             }
         }
     }

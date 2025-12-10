@@ -8,7 +8,6 @@ import androidx.room.withTransaction
 import com.example.dresscode.data.local.db.DressCodeDatabase
 import com.example.dresscode.data.local.entity.OutfitEntity
 import com.example.dresscode.data.local.entity.OutfitRemoteKey
-import com.example.dresscode.data.repository.OutfitMockData
 import com.example.dresscode.data.remote.OutfitApiService
 import com.example.dresscode.model.OutfitFilters
 import com.example.dresscode.data.remote.dto.OutfitDto
@@ -89,27 +88,6 @@ class OutfitRemoteMediator(
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: Exception) {
-            val fallbackAvailable = loadType == LoadType.REFRESH &&
-                (e is IOException || (e is HttpException && e.code() == 404))
-            if (fallbackAvailable) {
-                val favorites = favoriteResolver.invoke()
-                val mockEntities = OutfitMockData.entities(filterKey, favorites)
-                database.withTransaction {
-                    database.remoteKeyDao().clearByFilter(filterKey)
-                    database.outfitDao().clearByFilter(filterKey)
-                    val keys = mockEntities.map { entity ->
-                        OutfitRemoteKey(
-                            id = entity.id,
-                            filterKey = filterKey,
-                            prevKey = null,
-                            nextKey = null
-                        )
-                    }
-                    database.remoteKeyDao().insertAll(keys)
-                    database.outfitDao().insertAll(mockEntities)
-                }
-                return MediatorResult.Success(endOfPaginationReached = true)
-            }
             MediatorResult.Error(e)
         }
     }
