@@ -6,6 +6,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import androidx.room.withTransaction
+import android.util.Log
 import com.example.dresscode.data.local.db.DressCodeDatabase
 import com.example.dresscode.data.local.entity.FavoriteEntity
 import com.example.dresscode.data.local.entity.OutfitEntity
@@ -209,17 +210,23 @@ class OutfitRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             runCatching {
                 val dto = api.getOutfit(id)
+                Log.d("OutfitRepository", "detail dto id=$id imageUrl=${dto.imageUrl} legacy=${dto.imageUrlLegacy} images=${dto.images}")
                 val cached = outfitDao.findByIds(listOf(id)).firstOrNull()
                 val fallbackImages = buildList {
                     cached?.imageUrl?.takeIf { it.isNotBlank() }?.let { add(it) }
                 }
+                val images = dto.images
+                    ?.filter { it.isNotBlank() }
+                    ?.ifEmpty { null }
+                    ?: listOfNotNull(dto.imageUrl).ifEmpty { fallbackImages }
+                val safeImages = images.ifEmpty {
+                    // 最后兜底：尝试以 id 构造封面路径
+                    listOf("/static/outfits/outfit_${dto.id}_1.jpg")
+                }
                 OutfitDetail(
                     id = dto.id,
                     title = dto.title,
-                    images = dto.images
-                        ?.filter { it.isNotBlank() }
-                        ?.ifEmpty { null }
-                        ?: listOfNotNull(dto.imageUrl).ifEmpty { fallbackImages },
+                    images = safeImages,
                     tags = collectTags(dto.tags),
                     isUserUpload = dto.isUserUpload == true
                 )
@@ -269,11 +276,12 @@ private fun OutfitDto.toEntity(
     isFavorite: Boolean,
     isUserUpload: Boolean = false
 ): OutfitEntity {
+    val cover = imageUrl ?: imageUrlLegacy ?: images?.firstOrNull()
     return OutfitEntity(
         id = id,
         filterKey = filterKey,
         title = title,
-        imageUrl = imageUrl ?: images?.firstOrNull(),
+        imageUrl = cover,
         gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
         style = tags?.style?.firstOrNull(),
         season = tags?.season?.firstOrNull(),
@@ -288,10 +296,11 @@ private fun OutfitDto.toEntity(
 }
 
 private fun OutfitDto.toPreviewForRecommendation(): OutfitPreview {
+    val cover = imageUrl ?: imageUrlLegacy ?: images?.firstOrNull()
     return OutfitPreview(
         id = id,
         title = title,
-        imageUrl = imageUrl ?: images?.firstOrNull(),
+        imageUrl = cover,
         tags = collectTags(tags),
         gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() } ?: Gender.UNISEX,
         isFavorite = isFavorite ?: false,
@@ -300,10 +309,11 @@ private fun OutfitDto.toPreviewForRecommendation(): OutfitPreview {
 }
 
     private fun OutfitDto.toFavoriteEntity(): FavoriteEntity {
+        val cover = imageUrl ?: imageUrlLegacy ?: images?.firstOrNull()
         return FavoriteEntity(
             outfitId = id,
             title = title,
-            imageUrl = imageUrl ?: images?.firstOrNull(),
+            imageUrl = cover,
             gender = gender?.let { runCatching { Gender.valueOf(it.uppercase()) }.getOrNull() },
             tags = collectTags(tags)
         )

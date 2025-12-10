@@ -21,6 +21,8 @@ import android.view.LayoutInflater
 import android.widget.ImageView
 import android.view.ViewGroup
 import coil.load
+import android.graphics.drawable.ColorDrawable
+import androidx.core.content.ContextCompat
 import com.example.dresscode.BuildConfig
 
 @AndroidEntryPoint
@@ -86,6 +88,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         }
         dialogBinding.imageContainer.removeAllViews()
         val margin = (8 * resources.displayMetrics.density).toInt()
+        val placeholder = ColorDrawable(ContextCompat.getColor(requireContext(), R.color.md_theme_light_surfaceVariant))
         detail.images.forEach { url ->
             val imageView = ImageView(requireContext()).apply {
                 layoutParams = ViewGroup.MarginLayoutParams(
@@ -97,7 +100,9 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
             imageView.load(resolveUrl(url)) {
                 crossfade(true)
-                placeholder(R.color.md_theme_dark_surfaceVariant)
+                placeholder(placeholder)
+                error(placeholder)
+                allowHardware(false)
             }
             dialogBinding.imageContainer.addView(imageView)
         }

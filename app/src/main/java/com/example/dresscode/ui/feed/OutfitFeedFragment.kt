@@ -24,11 +24,14 @@ import android.view.LayoutInflater
 import android.widget.ImageView
 import android.view.ViewGroup
 import coil.load
+import android.graphics.drawable.ColorDrawable
+import androidx.core.content.ContextCompat
 import com.example.dresscode.databinding.DialogOutfitDetailBinding
 import com.example.dresscode.BuildConfig
 import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
 import java.io.IOException
+import android.util.Log
 
 @AndroidEntryPoint
 class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
@@ -220,9 +223,17 @@ class OutfitFeedFragment : Fragment(R.layout.fragment_outfit_feed) {
                 adjustViewBounds = true
                 scaleType = ImageView.ScaleType.FIT_CENTER
             }
+            val placeholder = ColorDrawable(ContextCompat.getColor(requireContext(), R.color.md_theme_light_surfaceVariant))
             imageView.load(resolveUrl(url)) {
                 crossfade(true)
-                placeholder(R.color.md_theme_dark_surfaceVariant)
+                placeholder(placeholder)
+                error(placeholder)
+                allowHardware(false)
+                listener(
+                    onError = { _, result ->
+                        Log.w("OutfitDetail", "Load image failed url=$url error=${result.throwable.message}")
+                    }
+                )
             }
             dialogBinding.imageContainer.addView(imageView)
         }

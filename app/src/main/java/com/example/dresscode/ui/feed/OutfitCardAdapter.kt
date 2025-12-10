@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.paging.PagingDataAdapter
 import coil.load
+import android.graphics.drawable.ColorDrawable
 import com.example.dresscode.R
 import com.example.dresscode.BuildConfig
 import com.example.dresscode.databinding.ItemOutfitCardBinding
@@ -50,9 +51,14 @@ class OutfitCardAdapter(
             }
             binding.btnFavorite.setTextColor(tint)
             val resolvedUrl = resolveUrl(item.imageUrl)
+            val placeholderDrawable = ColorDrawable(
+                ContextCompat.getColor(binding.root.context, R.color.md_theme_light_surfaceVariant)
+            )
             binding.outfitImage.load(resolvedUrl) {
                 crossfade(true)
-                placeholder(R.color.md_theme_light_surfaceVariant)
+                placeholder(placeholderDrawable)
+                error(placeholderDrawable)
+                allowHardware(false)
             }
             binding.btnDelete.apply {
                 visibility = if (item.isUserUpload) View.VISIBLE else View.GONE
