@@ -36,7 +36,8 @@ data class ToggleFavoriteResponse(
 data class OutfitRecommendationRequest(
     val city: String? = null,
     val temperature: Double? = null,
-    val weatherText: String? = null
+    val weatherText: String? = null,
+    val model: String? = null
 )
 
 data class OutfitRecommendationResponse(

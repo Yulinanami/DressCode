@@ -194,11 +194,13 @@ class OutfitRepository @Inject constructor(
                 val auth = userRepository.authState().first()
                 val email = auth.email
                 val password = auth.password
+                val prefs = settingsRepository.modelPreferences().first()
                 val response = api.recommendOutfit(
                     request = OutfitRecommendationRequest(
                         city = city,
                         temperature = temperature,
-                        weatherText = weatherText
+                        weatherText = weatherText,
+                        model = prefs.taggingModel.value
                     ),
                     userEmail = email,
                     userPassword = password
