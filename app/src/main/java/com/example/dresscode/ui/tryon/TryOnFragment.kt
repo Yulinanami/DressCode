@@ -46,6 +46,29 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
             handleOutfitImage(uri)
         }
 
+    private val createDocumentLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
+            if (_binding == null) return@registerForActivityResult
+            if (uri == null) return@registerForActivityResult
+            val bytes = lastResultBytes
+            if (bytes == null) {
+                Snackbar.make(binding.root, R.string.try_on_download_no_result, Snackbar.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+            runCatching {
+                requireContext().contentResolver.openOutputStream(uri)?.use { out ->
+                    out.write(bytes)
+                    out.flush()
+                } ?: throw IOException("output stream is null")
+            }.onSuccess {
+                Snackbar.make(binding.root, R.string.try_on_download_success, Snackbar.LENGTH_SHORT).show()
+            }.onFailure {
+                Snackbar.make(binding.root, R.string.try_on_download_failed, Snackbar.LENGTH_SHORT).show()
+            }
+        }
+
+    private var lastResultBytes: ByteArray? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentTryOnBinding.bind(view)
@@ -67,13 +90,19 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
                     Base64.decode(state.resultImageBase64, Base64.DEFAULT)
                 }.getOrNull()
                 if (resultBytes != null) {
+                    lastResultBytes = resultBytes
                     binding.tryonResultPreview.isVisible = true
                     setImageFromBytes(binding.tryonResultPreview, resultBytes)
+                    binding.btnDownloadResult.isVisible = true
                 } else {
+                    lastResultBytes = null
                     binding.tryonResultPreview.isVisible = false
+                    binding.btnDownloadResult.isVisible = false
                 }
             } else {
+                lastResultBytes = null
                 binding.tryonResultPreview.isVisible = false
+                binding.btnDownloadResult.isVisible = false
             }
             if (state.error != null) {
                 Snackbar.make(binding.root, state.error, Snackbar.LENGTH_SHORT).show()
@@ -87,6 +116,7 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
             pickOutfitImage.launch("image/*")
         }
         binding.btnSubmitTryOn.setOnClickListener { viewModel.submitTryOn() }
+        binding.btnDownloadResult.setOnClickListener { promptDownloadResult() }
         consumePresetOutfit()
 
         viewModel.favorites.observe(viewLifecycleOwner) { list ->
@@ -103,6 +133,7 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        lastResultBytes = null
         _binding = null
     }
 
@@ -173,5 +204,15 @@ class TryOnFragment : Fragment(R.layout.fragment_try_on) {
         if (bitmap != null) {
             view.setImageBitmap(bitmap)
         }
+    }
+
+    private fun promptDownloadResult() {
+        val bytes = lastResultBytes
+        if (bytes == null) {
+            Snackbar.make(binding.root, R.string.try_on_download_no_result, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        val fileName = "tryon_result_${System.currentTimeMillis()}.jpg"
+        createDocumentLauncher.launch(fileName)
     }
 }
