@@ -4,11 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dresscode.data.repository.SettingsRepository
 import com.example.dresscode.data.repository.TryOnImage
 import com.example.dresscode.data.repository.TryOnRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.TryOnUiState
 import com.example.dresscode.data.repository.OutfitRepository
+import com.example.dresscode.model.TryOnModel
 import com.example.dresscode.ui.tryon.TryOnFavoriteItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,7 +21,8 @@ import kotlinx.coroutines.launch
 class TryOnViewModel @Inject constructor(
     private val repository: TryOnRepository,
     userRepository: UserRepository,
-    outfitRepository: OutfitRepository
+    outfitRepository: OutfitRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(repository.snapshot())
@@ -32,12 +35,18 @@ class TryOnViewModel @Inject constructor(
     private var selectedOutfitImage: TryOnImage? = null
     private var isLoggedIn = false
     private var authToken: String? = null
+    private var selectedTryOnModel: TryOnModel = TryOnModel.AITRYON_PLUS
 
     init {
         viewModelScope.launch {
             userRepository.authState().collectLatest { auth ->
                 isLoggedIn = auth.isLoggedIn
                 authToken = auth.token
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.modelPreferences().collectLatest { prefs ->
+                selectedTryOnModel = prefs.tryOnModel
             }
         }
         viewModelScope.launch {
@@ -122,7 +131,7 @@ class TryOnViewModel @Inject constructor(
         }
         _uiState.value = base.copy(isSubmitting = true, error = null)
         viewModelScope.launch {
-            runCatching { repository.submitTryOn(portrait, outfitImage, authToken) }
+            runCatching { repository.submitTryOn(portrait, outfitImage, authToken, selectedTryOnModel.value) }
                 .onSuccess { result ->
                     _uiState.postValue(
                         result.copy(

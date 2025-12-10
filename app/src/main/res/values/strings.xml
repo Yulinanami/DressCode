@@ -69,6 +69,16 @@
     <string name="profile_gender_summary_all">未设置，默认展示男女款</string>
     <string name="profile_gender_summary_female">优先展示女款穿搭</string>
     <string name="profile_gender_summary_male">优先展示男款穿搭</string>
+    <string name="profile_tryon_model_title">智能换装模型</string>
+    <string name="profile_tryon_model_quality">aitryon-plus · 更加精确</string>
+    <string name="profile_tryon_model_fast">aitryon · 更快出图</string>
+    <string name="profile_tryon_model_quality_summary">aitryon-plus：画质更好，耗时稍长</string>
+    <string name="profile_tryon_model_fast_summary">aitryon：优先速度，细节略弱</string>
+    <string name="profile_tagging_model_title">穿搭图片标签模型</string>
+    <string name="profile_tagging_model_quality">gemini-2.5-flash · 更加精确</string>
+    <string name="profile_tagging_model_fast">gemini-2.5-flash-lite · 更快</string>
+    <string name="profile_tagging_model_quality_summary">flash：标签更细，延迟稍高</string>
+    <string name="profile_tagging_model_fast_summary">flash-lite：响应更快，精度略低</string>
     <string name="weather_card_title">%1$s · %2$s</string>
     <string name="try_on_selection_placeholder">人像：未选择\n穿搭：未选择</string>
     <string name="try_on_pick_photo">上传 / 拍摄人像</string>

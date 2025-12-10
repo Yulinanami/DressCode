@@ -57,6 +57,7 @@ interface OutfitApiService {
     @POST("outfits/upload")
     suspend fun uploadOutfit(
         @Part file: MultipartBody.Part,
+        @Part model: MultipartBody.Part,
         @Header("Authorization") token: String?
     ): OutfitDto
 

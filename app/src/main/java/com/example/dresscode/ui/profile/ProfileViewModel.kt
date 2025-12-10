@@ -8,7 +8,9 @@ import com.example.dresscode.data.repository.SettingsRepository
 import com.example.dresscode.data.repository.UserRepository
 import com.example.dresscode.model.AuthState
 import com.example.dresscode.model.Gender
+import com.example.dresscode.model.TaggingModel
 import com.example.dresscode.model.ProfileUiState
+import com.example.dresscode.model.TryOnModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.map
@@ -28,6 +30,10 @@ class ProfileViewModel @Inject constructor(
 
     val defaultGender: LiveData<Gender?> =
         settingsRepository.defaultFilters().map { it.gender }.asLiveData()
+    val tryOnModel: LiveData<TryOnModel> =
+        settingsRepository.modelPreferences().map { it.tryOnModel }.asLiveData()
+    val taggingModel: LiveData<TaggingModel> =
+        settingsRepository.modelPreferences().map { it.taggingModel }.asLiveData()
 
     fun logout() {
         viewModelScope.launch { repository.logout() }
@@ -35,5 +41,13 @@ class ProfileViewModel @Inject constructor(
 
     fun updateDefaultGender(gender: Gender?) {
         viewModelScope.launch { settingsRepository.setDefaultGender(gender) }
+    }
+
+    fun updateTryOnModel(model: TryOnModel) {
+        viewModelScope.launch { settingsRepository.setTryOnModel(model) }
+    }
+
+    fun updateTaggingModel(model: TaggingModel) {
+        viewModelScope.launch { settingsRepository.setTaggingModel(model) }
     }
 }

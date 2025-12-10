@@ -10,6 +10,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import com.example.dresscode.data.repository.SettingsRepository
+import kotlinx.coroutines.flow.first
 
 data class TaggingResult(
     val originalName: String,
@@ -19,15 +21,19 @@ data class TaggingResult(
 
 class TaggingRepository @Inject constructor(
     private val client: OkHttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val settingsRepository: SettingsRepository
 ) {
 
     suspend fun uploadForTags(fileName: String, bytes: ByteArray): TaggingResult {
+        val prefs = settingsRepository.modelPreferences().first()
+        val modelValue = prefs.taggingModel.value
         val contentType = "image/*".toMediaTypeOrNull()
         val requestBody = bytes.toRequestBody(contentType)
         val multipartBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("file", fileName, requestBody)
+            .addFormDataPart("model", modelValue)
             .build()
         val request = Request.Builder()
             .url("${baseUrl.trimEnd('/')}/tag-and-suggest-name")

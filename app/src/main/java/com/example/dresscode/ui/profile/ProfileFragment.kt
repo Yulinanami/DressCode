@@ -10,6 +10,8 @@ import com.example.dresscode.databinding.FragmentProfileBinding
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.android.material.snackbar.Snackbar
 import com.example.dresscode.model.Gender
+import com.example.dresscode.model.TaggingModel
+import com.example.dresscode.model.TryOnModel
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
@@ -18,6 +20,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val binding get() = _binding!!
     private val viewModel: ProfileViewModel by viewModels()
     private var suppressGenderCallback = false
+    private var suppressTryOnCallback = false
+    private var suppressTaggingCallback = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -83,6 +87,54 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 Gender.UNISEX, null -> getString(R.string.profile_gender_summary_all)
             }
             suppressGenderCallback = false
+        }
+
+        binding.tryonModelGroup.check(R.id.chip_tryon_model_quality)
+        binding.tryonModelGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (suppressTryOnCallback) return@setOnCheckedStateChangeListener
+            val model = when {
+                checkedIds.contains(R.id.chip_tryon_model_fast) -> TryOnModel.AITRYON
+                else -> TryOnModel.AITRYON_PLUS
+            }
+            viewModel.updateTryOnModel(model)
+        }
+
+        viewModel.tryOnModel.observe(viewLifecycleOwner) { model ->
+            suppressTryOnCallback = true
+            val targetId = when (model) {
+                TryOnModel.AITRYON -> R.id.chip_tryon_model_fast
+                TryOnModel.AITRYON_PLUS -> R.id.chip_tryon_model_quality
+            }
+            binding.tryonModelGroup.check(targetId)
+            binding.tryonModelSummary.text = when (model) {
+                TryOnModel.AITRYON -> getString(R.string.profile_tryon_model_fast_summary)
+                TryOnModel.AITRYON_PLUS -> getString(R.string.profile_tryon_model_quality_summary)
+            }
+            suppressTryOnCallback = false
+        }
+
+        binding.taggingModelGroup.check(R.id.chip_tagging_model_quality)
+        binding.taggingModelGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (suppressTaggingCallback) return@setOnCheckedStateChangeListener
+            val model = when {
+                checkedIds.contains(R.id.chip_tagging_model_fast) -> TaggingModel.GEMINI_FLASH_LITE
+                else -> TaggingModel.GEMINI_FLASH
+            }
+            viewModel.updateTaggingModel(model)
+        }
+
+        viewModel.taggingModel.observe(viewLifecycleOwner) { model ->
+            suppressTaggingCallback = true
+            val targetId = when (model) {
+                TaggingModel.GEMINI_FLASH_LITE -> R.id.chip_tagging_model_fast
+                TaggingModel.GEMINI_FLASH -> R.id.chip_tagging_model_quality
+            }
+            binding.taggingModelGroup.check(targetId)
+            binding.taggingModelSummary.text = when (model) {
+                TaggingModel.GEMINI_FLASH_LITE -> getString(R.string.profile_tagging_model_fast_summary)
+                TaggingModel.GEMINI_FLASH -> getString(R.string.profile_tagging_model_quality_summary)
+            }
+            suppressTaggingCallback = false
         }
     }
 

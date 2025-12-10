@@ -15,6 +15,7 @@ import com.example.dresscode.data.remote.dto.OutfitDto
 import com.example.dresscode.data.remote.dto.OutfitRecommendationRequest
 import com.example.dresscode.data.repository.OutfitFilterKey.build
 import com.example.dresscode.data.repository.paging.OutfitRemoteMediator
+import com.example.dresscode.data.repository.SettingsRepository
 import com.example.dresscode.model.Gender
 import com.example.dresscode.model.OutfitDetail
 import com.example.dresscode.model.OutfitFilters
@@ -35,7 +36,8 @@ import javax.inject.Inject
 class OutfitRepository @Inject constructor(
     private val api: OutfitApiService,
     private val database: DressCodeDatabase,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val settingsRepository: SettingsRepository
 ) {
 
     private val outfitDao = database.outfitDao()
@@ -147,13 +149,15 @@ class OutfitRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             val auth = userRepository.authState().first()
             val token = auth.token ?: return@withContext Result.failure(IllegalStateException("请登录后再上传穿搭"))
+            val taggingModel = settingsRepository.modelPreferences().first().taggingModel.value
             try {
                 val part = MultipartBody.Part.createFormData(
                     name = "file",
                     filename = fileName,
                     body = bytes.toRequestBody((mimeType ?: "image/jpeg").toMediaTypeOrNull())
                 )
-                val dto = api.uploadOutfit(part, "Bearer $token")
+                val modelPart = MultipartBody.Part.createFormData("model", taggingModel)
+                val dto = api.uploadOutfit(part, modelPart, "Bearer $token")
                 val entity = dto.toEntity(
                     filterKey = build("", OutfitFilters()),
                     page = 0,

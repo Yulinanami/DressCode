@@ -136,7 +136,8 @@ class TryOnRepository @Inject constructor(
     suspend fun submitTryOn(
         portrait: TryOnImage,
         outfit: TryOnImage,
-        token: String?
+        token: String?,
+        model: String? = null
     ): TryOnUiState = withContext(Dispatchers.IO) {
         val body = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -150,6 +151,9 @@ class TryOnRepository @Inject constructor(
                 outfit.fileName,
                 outfit.bytes.toRequestBody(outfit.mimeType.toMediaType())
             )
+            .apply {
+                model?.let { addFormDataPart("model", it) }
+            }
             .build()
         val requestBuilder = Request.Builder()
             .url("${baseUrl.trimEnd('/')}/tryon")

@@ -52,8 +52,9 @@ object RepositoryModule {
     fun provideOutfitRepository(
         api: OutfitApiService,
         database: DressCodeDatabase,
-        userRepository: UserRepository
-    ): OutfitRepository = OutfitRepository(api, database, userRepository)
+        userRepository: UserRepository,
+        settingsRepository: SettingsRepository
+    ): OutfitRepository = OutfitRepository(api, database, userRepository, settingsRepository)
 
     @Provides
     @Singleton
@@ -79,8 +80,11 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTaggingRepository(client: OkHttpClient): TaggingRepository =
-        TaggingRepository(client, BuildConfig.TAGGING_BASE_URL)
+    fun provideTaggingRepository(
+        client: OkHttpClient,
+        settingsRepository: SettingsRepository
+    ): TaggingRepository =
+        TaggingRepository(client, BuildConfig.TAGGING_BASE_URL, settingsRepository)
 
     @Provides
     @Singleton
