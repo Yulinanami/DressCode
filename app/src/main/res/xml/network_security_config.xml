@@ -4,7 +4,6 @@
         <domain includeSubdomains="false">10.0.2.2</domain>
         <domain includeSubdomains="false">localhost</domain>
         <domain includeSubdomains="false">172.18.223.168</domain>
-        <domain includeSubdomains="false">47.77.213.33</domain>
     </domain-config>
     <base-config cleartextTrafficPermitted="false" />
 </network-security-config>
